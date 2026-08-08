@@ -1,0 +1,68 @@
+#include <Arduino.h>
+#include <NimBLEDevice.h>
+
+static const char *NOMBRE_JOYSTICK = "GamepadPlus V3";
+
+NimBLEAdvertisedDevice *dispositivoEncontrado = nullptr;
+NimBLEClient *clienteBLE = nullptr;
+
+void onNotificacionRecibida(NimBLERemoteCharacteristic *car, uint8_t *datos,
+                            size_t largo, bool esNotificacion) {
+  Serial.printf("Notificacion de %s (%d bytes): ",
+                car->getUUID().toString().c_str(), largo);
+  for (size_t i = 0; i < largo; i++) {
+    Serial.printf("%02X ", datos[i]);
+  }
+  Serial.println();
+}
+
+class CallbacksScan : public NimBLEScanCallbacks {
+  void onResult(const NimBLEAdvertisedDevice *dispositivo) override {
+    Serial.printf("MAC=%s  RSSI=%d  nombre=\"%s\"\n",
+                  dispositivo->getAddress().toString().c_str(),
+                  dispositivo->getRSSI(), dispositivo->getName().c_str());
+  }
+};
+
+void conectarYExplorar() {
+  clienteBLE = NimBLEDevice::createClient();
+  if (!clienteBLE->connect(dispositivoEncontrado)) {
+    Serial.println("No se pudo conectar.");
+    return;
+  }
+  Serial.println("Conectado. Explorando servicios...");
+
+  // OJO: en NimBLE-Arduino 2.x getServices()/getCharacteristics() devuelven
+  // una referencia (const std::vector<...>&), no un puntero -> sin "*"
+  // adelante.
+  for (auto servicio : clienteBLE->getServices(true)) {
+    Serial.printf("Servicio: %s\n", servicio->getUUID().toString().c_str());
+    for (auto caracteristica : servicio->getCharacteristics(true)) {
+      Serial.printf("  Caracteristica: %s (notify=%d)\n",
+                    caracteristica->getUUID().toString().c_str(),
+                    caracteristica->canNotify());
+      if (caracteristica->canNotify()) {
+        caracteristica->subscribe(true, onNotificacionRecibida);
+      }
+    }
+  }
+}
+
+void setup() {
+  Serial.begin(115200);
+  delay(2000);
+  Serial.println("Iniciando escaneo BLE...");
+
+  NimBLEDevice::init("");
+  NimBLEScan *scan = NimBLEDevice::getScan();
+  scan->setScanCallbacks(new CallbacksScan());
+  scan->setActiveScan(true);
+  scan->start(30000, false); // escanea 30 segundos
+}
+
+void loop() {
+  if (dispositivoEncontrado != nullptr && clienteBLE == nullptr) {
+    conectarYExplorar();
+  }
+  delay(100);
+}

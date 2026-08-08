@@ -1,0 +1,127 @@
+/**
+ * @file    main.cpp
+ * @brief   Barrido de GPIOs con un servo para identificar el pin correcto.
+ */
+
+#include <Arduino.h>
+#include <ESP32Servo.h>
+
+namespace {
+
+constexpr int kCandidatePins[] = {15};
+constexpr size_t kCandidatePinCount =
+    sizeof(kCandidatePins) / sizeof(kCandidatePins[0]);
+constexpr uint16_t kServoMinUs = 500;
+constexpr uint16_t kServoMaxUs = 2500;
+constexpr uint8_t kMinAngle = 20;
+constexpr uint8_t kMaxAngle = 160;
+constexpr uint8_t kCenterAngle = 90;
+constexpr uint16_t kMovePauseMs = 900;
+constexpr uint16_t kPinPauseMs = 1500;
+
+Servo servo;
+size_t currentPinIndex = 0;
+uint8_t movementStep = 0;
+unsigned long lastMoveMs = 0;
+
+void printServoConfig() {
+  Serial.println(F("Barrido de GPIOs para un servo activo."));
+  Serial.println(F("ESP32Servo usa PWM por hardware del ESP32-S3 y puede "
+                   "convivir con BLE."));
+  Serial.println(F("Conecta un solo servo y observa en que GPIO responde."));
+  Serial.println(
+      F("Secuencia por pin: centro, minimo, maximo, centro, siguiente pin."));
+  Serial.print(F("GPIOs candidatos: "));
+  for (size_t index = 0; index < kCandidatePinCount; ++index) {
+    Serial.printf("%d%s", kCandidatePins[index],
+                  (index + 1 < kCandidatePinCount) ? ", " : "\r\n");
+  }
+}
+
+bool attachServoToPin(int pin) {
+  servo.setPeriodHertz(50);
+  servo.attach(pin, kServoMinUs, kServoMaxUs);
+  return servo.attached();
+}
+
+void selectPin(size_t pinIndex) {
+  if (servo.attached()) {
+    servo.detach();
+    delay(20);
+  }
+
+  currentPinIndex = pinIndex;
+  movementStep = 0;
+
+  const int pin = kCandidatePins[currentPinIndex];
+  Serial.println();
+  Serial.printf("Probando GPIO %d (%u/%u)\r\n", pin,
+                static_cast<unsigned>(currentPinIndex + 1),
+                static_cast<unsigned>(kCandidatePinCount));
+
+  if (!attachServoToPin(pin)) {
+    Serial.println(F("No se pudo adjuntar el servo a este GPIO. Siguiente."));
+    currentPinIndex = (currentPinIndex + 1) % kCandidatePinCount;
+    selectPin(currentPinIndex);
+    return;
+  }
+
+  servo.write(kCenterAngle);
+  Serial.printf("GPIO %d: centro %d grados\r\n", pin, kCenterAngle);
+}
+
+void runMovementStep() {
+  const int pin = kCandidatePins[currentPinIndex];
+
+  switch (movementStep) {
+  case 0:
+    servo.write(kMinAngle);
+    Serial.printf("GPIO %d: minimo %d grados\r\n", pin, kMinAngle);
+    ++movementStep;
+    break;
+  case 1:
+    servo.write(kMaxAngle);
+    Serial.printf("GPIO %d: maximo %d grados\r\n", pin, kMaxAngle);
+    ++movementStep;
+    break;
+  case 2:
+    servo.write(kCenterAngle);
+    Serial.printf("GPIO %d: centro %d grados\r\n", pin, kCenterAngle);
+    ++movementStep;
+    break;
+  default:
+    currentPinIndex = (currentPinIndex + 1) % kCandidatePinCount;
+    selectPin(currentPinIndex);
+    lastMoveMs = millis() + kPinPauseMs - kMovePauseMs;
+    break;
+  }
+}
+
+} // namespace
+
+void setup() {
+  Serial.begin(115200);
+  const unsigned long serialWaitStart = millis();
+  while (!Serial && (millis() - serialWaitStart) < 2000) {
+    delay(10);
+  }
+
+  Serial.println();
+  Serial.println(F("OK SETUP - Detector de GPIO para servo"));
+  printServoConfig();
+
+  selectPin(0);
+  lastMoveMs = millis();
+}
+
+void loop() {
+  const unsigned long now = millis();
+
+  const unsigned long waitMs = (movementStep >= 3) ? kPinPauseMs : kMovePauseMs;
+  if (now - lastMoveMs < waitMs) {
+    return;
+  }
+
+  lastMoveMs = now;
+  runMovementStep();
+}

@@ -1,0 +1,165 @@
+#include <Arduino.h>
+#include <NimBLEDevice.h>
+
+// OJO: "GamePadPlus V3" con P mayuscula en "Pad" - asi lo manda el dispositivo
+// real.
+static const char *NOMBRE_JOYSTICK = "GamePadPlus V3";
+
+// Servicio HID estandar (0x1812): asi enganchamos aunque el nombre no venga.
+static const NimBLEUUID UUID_HID_SERVICE((uint16_t)0x1812);
+
+// Guardamos el OBJETO del anuncio (no solo la direccion): asi conservamos el
+// tipo de direccion y podemos conectar aunque toString muestre 00:00...
+static NimBLEAdvertisedDevice *dispositivoObjetivo = nullptr;
+static volatile bool joystickEncontrado = false;
+static volatile bool pedirReescaneo = false;
+NimBLEClient *clienteBLE = nullptr;
+
+void onNotificacionRecibida(NimBLERemoteCharacteristic *car, uint8_t *datos,
+                            size_t largo, bool esNotificacion) {
+  Serial.printf("Notif h=0x%04x %s (%d b): ", car->getHandle(),
+                car->getUUID().toString().c_str(), largo);
+  for (size_t i = 0; i < largo; i++) {
+    Serial.printf("%02X ", datos[i]);
+  }
+  Serial.println();
+}
+
+void iniciarEscaneo() {
+  NimBLEScan *scan = NimBLEDevice::getScan();
+  scan->setActiveScan(true);
+  scan->setInterval(100);
+  scan->setWindow(50);
+  joystickEncontrado = false;
+  scan->start(0, false); // 0 = escaneo continuo hasta encontrarlo
+  Serial.println("Escaneando joystick (poné el control en modo pairing)...");
+}
+
+class ClienteCB : public NimBLEClientCallbacks {
+  void onConnect(NimBLEClient *cli) override {
+    Serial.println(">> Conectado.");
+  }
+  void onConnectFail(NimBLEClient *cli, int reason) override {
+    Serial.printf(">> Fallo de conexion (reason=%d).\n", reason);
+  }
+  void onDisconnect(NimBLEClient *cli, int reason) override {
+    Serial.printf(">> Desconectado (reason=%d). Reintentare conectar...\n",
+                  reason);
+    pedirReescaneo = true;
+  }
+  // Aceptar los parametros que pida el gamepad estabiliza el enlace.
+  bool onConnParamsUpdateRequest(NimBLEClient *cli,
+                                 const ble_gap_upd_params *params) override {
+    return true;
+  }
+};
+
+static ClienteCB clienteCallbacks;
+
+class CallbacksScan : public NimBLEScanCallbacks {
+  void onResult(const NimBLEAdvertisedDevice *dispositivo) override {
+    const std::string nombre = dispositivo->getName();
+    const bool esHID = dispositivo->isAdvertisingService(UUID_HID_SERVICE);
+    const bool nombreCoincide = (nombre.find("GamePad") != std::string::npos) ||
+                                (nombre.find("Gamepad") != std::string::npos);
+    if (!esHID && !nombreCoincide) {
+      return;
+    }
+    const NimBLEAddress dir = dispositivo->getAddress();
+    Serial.printf(
+        ">>> Candidato: \"%s\"  %s  tipo=%u  null=%d  rpa=%d  HID=%d\n",
+        nombre.c_str(), dir.toString().c_str(), dir.getType(), dir.isNull(),
+        dir.isRpa(), esHID);
+    // Guardamos el objeto completo e intentamos conectar igual, aunque la
+    // direccion se vea nula: el objeto conserva el tipo real.
+    if (dispositivoObjetivo != nullptr) {
+      delete dispositivoObjetivo;
+    }
+    dispositivoObjetivo = new NimBLEAdvertisedDevice(*dispositivo);
+    joystickEncontrado = true;
+    NimBLEDevice::getScan()->stop();
+  }
+};
+
+void conectarYExplorar() {
+  joystickEncontrado = false;
+  clienteBLE = NimBLEDevice::createClient();
+  clienteBLE->setClientCallbacks(&clienteCallbacks, false);
+
+  Serial.println("Conectando al joystick...");
+  bool conecto = false;
+  for (int intento = 1; intento <= 3 && !conecto; ++intento) {
+    conecto = clienteBLE->connect(dispositivoObjetivo);
+    if (!conecto) {
+      Serial.printf("Intento %d fallo. Reintentando...\n", intento);
+      delay(400);
+    }
+  }
+
+  if (!conecto) {
+    Serial.println("No se pudo conectar. Vuelvo a escanear...");
+    NimBLEDevice::deleteClient(clienteBLE);
+    clienteBLE = nullptr;
+    iniciarEscaneo();
+    return;
+  }
+
+  // Los gamepads HID BLE no envian botones/ejes sin conexion cifrada.
+  if (!clienteBLE->secureConnection()) {
+    Serial.println(
+        "Aviso: no se pudo emparejar/cifrar (puede que no lleguen datos).");
+  }
+  Serial.println("Conectado. Explorando servicios...");
+
+  int suscritas = 0;
+  for (auto servicio : clienteBLE->getServices(true)) {
+    Serial.printf("Servicio: %s\n", servicio->getUUID().toString().c_str());
+    for (auto caracteristica : servicio->getCharacteristics(true)) {
+      Serial.printf("  Caracteristica: %s (notify=%d)\n",
+                    caracteristica->getUUID().toString().c_str(),
+                    caracteristica->canNotify());
+      if (caracteristica->canNotify()) {
+        if (caracteristica->subscribe(true, onNotificacionRecibida)) {
+          ++suscritas;
+        }
+      }
+    }
+  }
+  Serial.printf("Listo: %d notify activas. Mové sticks y botones.\n",
+                suscritas);
+}
+
+void setup() {
+  Serial.begin(115200);
+  delay(2000);
+  Serial.println("Iniciando escaneo BLE...");
+  Serial.printf("Buscando \"%s\" o cualquier gamepad HID BLE...\n",
+                NOMBRE_JOYSTICK);
+
+  NimBLEDevice::init("");
+  // Bonding activado: necesario para recibir input de gamepads HID BLE.
+  NimBLEDevice::setSecurityAuth(true, false, true);
+  // Empezamos con los emparejamientos viejos borrados (evita el bloqueo por
+  // bond previo que deja la direccion en 00:00...).
+  NimBLEDevice::deleteAllBonds();
+
+  NimBLEScan *scan = NimBLEDevice::getScan();
+  scan->setScanCallbacks(new CallbacksScan());
+  iniciarEscaneo();
+}
+
+void loop() {
+  if (pedirReescaneo) {
+    pedirReescaneo = false;
+    if (clienteBLE != nullptr) {
+      NimBLEDevice::deleteClient(clienteBLE);
+      clienteBLE = nullptr;
+    }
+    iniciarEscaneo();
+  }
+
+  if (joystickEncontrado && clienteBLE == nullptr) {
+    conectarYExplorar();
+  }
+  delay(100);
+}

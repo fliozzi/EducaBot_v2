@@ -1,0 +1,128 @@
+/**
+ * @file    main.cpp
+ * @brief   Barrido de GPIOs para encontrar el pin del bus WS2812 en EducaBot.
+ */
+
+#include <Adafruit_NeoPixel.h>
+#include <Arduino.h>
+
+namespace {
+
+constexpr uint8_t kLedCount = 6;
+constexpr uint8_t kBrightness = 24;
+constexpr uint16_t kStepMs = 200;
+constexpr uint8_t kSweepsPerPin = 3;
+constexpr int kCandidatePins[] = {
+    2,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13, 14,
+    15, 16, 17, 18, 21, 38, 39, 40, 41, 42, 47, 48,
+};
+// constexpr int kCandidatePins[] = {4};
+constexpr size_t kCandidatePinCount =
+    sizeof(kCandidatePins) / sizeof(kCandidatePins[0]);
+constexpr uint8_t kSweepPath[] = {0, 1, 2, 3, 4, 5, 4, 3, 2, 1};
+constexpr size_t kSweepPathLength = sizeof(kSweepPath) / sizeof(kSweepPath[0]);
+
+Adafruit_NeoPixel strip(kLedCount, kCandidatePins[0], NEO_GRB + NEO_KHZ800);
+
+size_t currentPinIndex = 0;
+size_t currentStepIndex = 0;
+uint8_t completedSweeps = 0;
+unsigned long lastStepMs = 0;
+
+uint32_t colorForPixel(uint8_t pixel) {
+  switch (pixel) {
+  case 0:
+    return strip.Color(255, 0, 0);
+  case 1:
+    return strip.Color(255, 96, 0);
+  case 2:
+    return strip.Color(255, 255, 0);
+  case 3:
+    return strip.Color(0, 255, 0);
+  case 4:
+    return strip.Color(0, 0, 255);
+  default:
+    return strip.Color(180, 0, 255);
+  }
+}
+
+void renderFrame() {
+  strip.clear();
+  const uint8_t activePixel = kSweepPath[currentStepIndex];
+  strip.setPixelColor(activePixel, colorForPixel(activePixel));
+  strip.show();
+}
+
+void printPinBanner(size_t pinIndex) {
+  Serial.println();
+  Serial.printf("Probando GPIO %d (%u/%u) con %u LEDs WS2812 en barrido RGB "
+                "ida/vuelta cada %u ms\r\n",
+                kCandidatePins[pinIndex], static_cast<unsigned>(pinIndex + 1),
+                static_cast<unsigned>(kCandidatePinCount), kLedCount, kStepMs);
+}
+
+void selectPin(size_t pinIndex) {
+  strip.clear();
+  strip.show();
+  strip.setPin(kCandidatePins[pinIndex]);
+  strip.begin();
+  strip.setBrightness(kBrightness);
+  currentPinIndex = pinIndex;
+  currentStepIndex = 0;
+  completedSweeps = 0;
+  printPinBanner(pinIndex);
+  renderFrame();
+}
+
+void printCandidatePins() {
+  Serial.println(F("Lista de GPIOs candidatos:"));
+  for (size_t index = 0; index < kCandidatePinCount; ++index) {
+    Serial.printf("%d%s", kCandidatePins[index],
+                  (index + 1 < kCandidatePinCount) ? ", " : "\r\n");
+  }
+}
+
+} // namespace
+
+void setup() {
+  Serial.begin(115200);
+  const unsigned long serialWaitStart = millis();
+  while (!Serial && (millis() - serialWaitStart) < 2000) {
+    delay(10);
+  }
+
+  Serial.println();
+  Serial.println(F("OK SETUP - Explorador de pines WS2812"));
+  printCandidatePins();
+
+  strip.begin();
+  strip.clear();
+  strip.show();
+  strip.setBrightness(kBrightness);
+
+  selectPin(0);
+  lastStepMs = millis();
+}
+
+void loop() {
+  const unsigned long now = millis();
+  if (now - lastStepMs < kStepMs) {
+    return;
+  }
+
+  lastStepMs = now;
+  ++currentStepIndex;
+
+  if (currentStepIndex >= kSweepPathLength) {
+    currentStepIndex = 0;
+    ++completedSweeps;
+    if (completedSweeps >= kSweepsPerPin) {
+      const size_t nextPinIndex = (currentPinIndex + 1) % kCandidatePinCount;
+      selectPin(nextPinIndex);
+      lastStepMs = now;
+      return;
+    }
+  }
+
+  renderFrame();
+}
