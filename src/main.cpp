@@ -7,6 +7,7 @@
 /// - NeoPixelEffects: animaciones y señalización de los 6 LED WS2812.
 
 #include <Arduino.h>
+#include <ESP32Servo.h>
 
 #include "DifferentialDrive.h"
 #include "JoystickBLE.h"
@@ -17,9 +18,15 @@ constexpr uint8_t PIN_LEDS = 2; // GPIO del bus WS2812 (ajustar según placa)
 constexpr uint8_t CANT_LEDS = 6;
 constexpr uint8_t BRILLO_LEDS = 48;
 
+// Servos (SAT1 y SAT2 en conectores RJ11 de la EduPlugPower)
+constexpr uint8_t PIN_SERVO1 = 15;
+constexpr uint8_t PIN_SERVO2 = 15;
+
 // ---- Objetos globales ----------------------------------------------------
 JoystickBLE joystick;
 NeoPixelEffects leds;
+Servo servo1;
+Servo servo2;
 
 constexpr DifferentialDrive::MotorPins MOTOR_IZQUIERDO(39, 40, 0, 1, false);
 constexpr DifferentialDrive::MotorPins MOTOR_DERECHO(41, 42, 2, 3, true);
@@ -34,11 +41,22 @@ bool animConectadoDisparada = false;
 bool paroTotalActivo = false;
 bool yPresionadaAnterior = false;
 
+// ---- Estado barrido de servos --------------------------------------------
+int16_t servoAngulo = 0;
+int8_t servoDireccion = 1;
+unsigned long ultimoServoMs = 0;
+
 // ===================================================================
 void setup() {
   leds.begin(PIN_LEDS, CANT_LEDS);
   leds.setBrightness(BRILLO_LEDS);
   traccion.begin();
+
+  servo1.setPeriodHertz(50);
+  servo1.attach(PIN_SERVO1, 544, 2400);
+  servo2.setPeriodHertz(50);
+  servo2.attach(PIN_SERVO2, 544, 2400);
+
   joystick.iniciar();
   // joystick.setVerbose(false); // descomentar para máxima eficiencia
 }
@@ -71,6 +89,21 @@ void loop() {
     yPresionadaAnterior = yPresionada;
 
     leds.mostrarEstadoControl(bloqueoGiro, bloqueoAvance, paroTotalActivo);
+
+    // ---- Barrido cíclico de servos (prueba) ----
+    if (millis() - ultimoServoMs >= 15) {
+      ultimoServoMs = millis();
+      servoAngulo += servoDireccion;
+      if (servoAngulo >= 180) {
+        servoDireccion = -1;
+        servoAngulo = 180;
+      } else if (servoAngulo <= 0) {
+        servoDireccion = 1;
+        servoAngulo = 0;
+      }
+      servo1.write(servoAngulo);
+      servo2.write(180 - servoAngulo); // espejado: opuesto al servo 1
+    }
 
     if (paroTotalActivo) {
       traccion.brake();
