@@ -1,28 +1,146 @@
-# EducaBot — Lectura de joystick Bluetooth (BLE) con ESP32-S3
+# EducaBot v2 — Robot educativo de tracción diferencial con joystick Bluetooth
 
-Proyecto en **Arduino puro** (PlatformIO) que conecta un joystick Bluetooth
-tipo PlayStation al **ESP32-S3** y muestra por el monitor serie el estado de
-todos los ejes, gatillos, D-pad y botones.
+**Autor:** Prof. Fernando Angel Liozzi — 2026
 
-No usa librerías privadas ni de terceros para el gamepad: solo
-`NimBLE-Arduino` como host BLE HID.
+Robot tipo autito de **tracción diferencial** (2 motores DC) controlado de
+forma inalámbrica por un **joystick Bluetooth BLE** tipo PlayStation. Funciona
+sobre un **ESP32-S3** y utiliza **4 bibliotecas propias** desarrolladas
+íntegramente para este proyecto.
 
----
-
-## Hardware
-
-- **Placa:** ESP32-S3-WROOM-2 (solo tiene Bluetooth LE, no Bluetooth Classic).
-- **Joystick:** genérico tipo PlayStation que se anuncia por BLE como
-  `GamePadPlus V3`.
-- **Modo del joystick:** encender con **Home + X**. En ese modo el mando se
-  ofrece como HID por BLE y el ESP32-S3 lo toma.
-
-> El mismo mando en otros combos de encendido puede ir por Bluetooth Classic,
-> que el ESP32-S3 no soporta. Por eso se usa Home + X.
+| Componente         | Detalle                                            |
+| ------------------ | -------------------------------------------------- |
+| **Placa**          | ESP32-S3-WROOM-2 (solo BLE, sin Bluetooth Classic) |
+| **Driver motores** | HR8833 (puente H doble)                            |
+| **Motores**        | 2 motores DC en configuración diferencial          |
+| **Iluminación**    | Tira de 6 LEDs WS2812 (NeoPixel)                   |
+| **Control**        | Joystick GamePadPlus V3 por BLE (modo Home + X)    |
+| **Framework**      | Arduino sobre PlatformIO                           |
 
 ---
 
-## Cómo funciona la conexión
+## 🔌 Placa EduPlugPower
+
+Placa educativa utilizada en la **Copa Robótica Educabot 2026**
+([coparobotica.com](https://www.coparobotica.com/)). Integra el ESP32-S3, el
+driver HR8833, regulador de tensión y conectores para motores y sensores en
+un solo módulo compacto.
+
+<p align="center">
+  <img src="docs/EducaBot01.jpg" alt="Placa EduPlugPower - vista frontal" width="45%">
+  &nbsp;&nbsp;
+  <img src="docs/EducaBot02.jpg" alt="Placa EduPlugPower - vista posterior" width="45%">
+</p>
+
+### Conectores y pines
+
+La placa dispone de **8 conectores RJ11 6P6C** que incluyen entradas, salidas,
+motores, servos y bus I²C, más un **header de 2 pines para speaker**.
+
+| Conector    | GPIO / Pin       | Función                  |
+| ----------- | ---------------- | ------------------------ |
+| **0**       | 4                | Entrada/sensor digital   |
+| **1**       | 8                | Entrada/sensor digital   |
+| **2**       | 2                | Tira WS2812 (NeoPixel)   |
+| **I²C**     | SDA/SCL          | Bus I²C para sensores    |
+| **SAT1**    | 15               | Servo de potencia 1      |
+| **SAT2**    | 15               | Servo de potencia 2      |
+| **MD**      | BIN1=41, BIN2=42 | Motor derecho (HR8833)   |
+| **MI**      | AIN1=39, AIN2=40 | Motor izquierdo (HR8833) |
+| **Speaker** | Header 2 pines   | Salida de audio          |
+
+> Todos los conectores de E/S son RJ11 6P6C: evitan inversión de polaridad y
+> son ideales para entornos educativos. Los conectores SAT1/SAT2 están
+> diseñados para servos de potencia con alimentación independiente.
+
+---
+
+## 🎮 Controles del robot
+
+| Control                | Acción                                                                        |
+| ---------------------- | ----------------------------------------------------------------------------- |
+| **Stick derecho (RY)** | Avance / reversa                                                              |
+| **Stick derecho (RX)** | Giro izquierda / derecha                                                      |
+| **L1**                 | 🔒 Bloquea el giro (fuerza RX = centro)                                       |
+| **R1**                 | 🔒 Bloquea avance/reversa (fuerza RY = centro)                                |
+| **Y**                  | ⏯️ Toggle de **paro total enclavado** (freno activo)                          |
+| **L2 (analógico)**     | 🎯 Atenuador de velocidad: suelto = máxima potencia, a fondo = modo precisión |
+
+### Indicadores LED de estado
+
+| LED                         | Significado                       |
+| --------------------------- | --------------------------------- |
+| 🔴 LED ① fijo               | Giro bloqueado (L1 presionado)    |
+| 🔴 LED ⑥ fijo               | Avance bloqueado (R1 presionado)  |
+| 🟠 LEDs ② y ⑤ intermitentes | Paro total activo (Y enclavado)   |
+| 🌈 Arcoíris giratorio       | Escaneando joystick BLE           |
+| 🟢 Pulso verde + fade-out   | Conexión establecida              |
+| ⚫ Todos apagados           | Operación normal (ahorro batería) |
+
+---
+
+## 🧩 Bibliotecas propias
+
+El proyecto se compone de **4 bibliotecas originales** (en `lib/`):
+
+| Biblioteca            | Responsabilidad                                                                                                                  |
+| --------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| **JoystickBLE**       | Ciclo de vida BLE completo: escaneo, bonding seguro (sin IRK), conexión, reconexión automática, suscripción a notificaciones HID |
+| **GamepadData**       | Parseo del report HID de 10 bytes: 4 ejes, D-pad, 12 botones, gatillos L2/R2 duales (analógico + digital)                        |
+| **DifferentialDrive** | Tracción diferencial con mezcla arcade, normalización anti-saturación, deadzone, atenuación L2, modos de decaimiento Slow/Fast   |
+| **NeoPixelEffects**   | 3 efectos en tira WS2812 de 6 LEDs: arcoíris giratorio (escaneo), pulso verde (conexión), indicadores rojo/ámbar (bloqueos)      |
+
+### Documentación detallada
+
+Cada biblioteca tiene su propia documentación en `docs/`:
+
+- [`DifferentialDrive.md`](docs/DifferentialDrive.md) — mezcla arcade, modos PWM, frenado
+- [`JoystickBLE.md`](docs/JoystickBLE.md) — arquitectura BLE, seguridad, reconexión
+- [`NeoPixelEffects.md`](docs/NeoPixelEffects.md) — efectos de iluminación y estados
+
+---
+
+## 🔌 Pinout
+
+| GPIO | Función           | Notas                   |
+| ---- | ----------------- | ----------------------- |
+| 2    | WS2812 (NeoPixel) | Tira de 6 LEDs          |
+| 39   | Motor izq. IN1    | Canal LEDC 0            |
+| 40   | Motor izq. IN2    | Canal LEDC 1            |
+| 41   | Motor der. IN1    | Canal LEDC 2            |
+| 42   | Motor der. IN2    | Canal LEDC 3, invertido |
+
+---
+
+## ⚙️ Tracción diferencial
+
+El robot usa **mezcla arcade**: un solo stick (derecho) controla avance/reversa
+(RY) y giro (RX) simultáneamente. El algoritmo:
+
+1. Convierte cada eje a valor signed con **deadzone** (±16 alrededor del centro 128)
+2. Calcula: `motorIzq = avance + giro`, `motorDer = avance - giro`
+3. **Normaliza** para que ningún motor sature, preservando la relación de velocidades
+4. Aplica **atenuación por L2**: interpola linealmente el PWM máximo entre 255 (L2=0, máxima potencia) y 150 (L2=255, modo precisión al 59%)
+5. Escribe los PWM por hardware (LEDC) al HR8833
+
+### Modos de decaimiento
+
+| Modo     | Comportamiento                                             | Uso ideal              |
+| -------- | ---------------------------------------------------------- | ---------------------- |
+| **Slow** | Torque sostenido, movimiento muy suave a bajas velocidades | Precisión (L2 a fondo) |
+| **Fast** | Frenado dinámico, respuesta rápida a cambios               | Alta velocidad         |
+
+> ⚠️ Actualmente el decay mode está fijo en **Slow**. El cambio dinámico
+> (Fast a alta velocidad → Slow en precisión) está planeado para v3.14.
+
+###🛑 Paro total (Y)
+
+Cuando se presiona Y, se activa un **freno enclavado**: ambos canales de cada
+motor reciben `pwmMax` → el HR8833 cortocircuita los motores → freno activo.
+Se libera volviendo a presionar Y (toggle con detección de flanco).
+
+---
+
+## 📡 Conexión BLE
 
 Lo que hace falta para que enganche de forma confiable (ya resuelto en el
 código):
@@ -35,13 +153,16 @@ código):
 3. Se guarda el **objeto** del anuncio y se conecta por él (no por la dirección
    extraída), así se conserva el tipo real de dirección aunque se vea nula.
 4. Reconexión automática: si el mando se desconecta, vuelve a escanear solo.
+5. **Seguridad sin IRK**: solo se intercambia clave de cifrado (ENC), sin
+   Identity Resolving Key. Esto evita que NimBLE intente resolver direcciones
+   RPA y devuelva `00:00:00:00:00:00`.
 
 Si alguna vez no conecta: olvidá el `GamePadPlus V3` en Windows/teléfono para
 que no se reconecte a ellos, y reiniciá el joystick.
 
 ---
 
-## Mapa del report HID
+## 📊 Mapa del report HID
 
 El mando envía por la característica **`0x2a4d`** (servicio HID `0x1812`,
 handle `0x001b`) un report de **10 bytes**. Todos los valores son de **8 bits
@@ -94,46 +215,32 @@ handle `0x001b`) un report de **10 bytes**. Todos los valores son de **8 bits
 > Los gatillos L2/R2 aparecen dos veces: como **bit digital** (presionado sí/no)
 > y como **eje analógico** (bytes 7 y 8). No es un error, es diseño del mando.
 
-### Nota sobre la resolución
-
-El mando entrega **8 bits (0..255)**. Otras librerías muestran los sticks como
-`-512..512` y los gatillos como `0..512`, pero eso es un **reescalado**, no más
-precisión real. Este proyecto muestra el valor crudo tal cual llega.
-
----
-
-## Salida por consola
-
-Se imprime **solo cuando el estado cambia** (para no saturar el USB del S3 y
-perder datos). Ejemplo:
-
-```
-LX=128 LY=128 RX=128 RY=128 | L2=0 R2=0 | DPAD=- | Botones: -
-LX=128 LY=32 RX=128 RY=128 | L2=0 R2=0 | DPAD=arriba | Botones: A X
-LX=128 LY=128 RX=128 RY=128 | L2=255 R2=0 | DPAD=- | Botones: L2
-```
-
-- Ejes y gatillos: valor 0..255.
-- D-pad: nombre de la dirección.
-- Botones: nombres reales de los que están presionados (o `-` si ninguno).
-
 ---
 
 ## Estructura de archivos
 
 ```
-EducaBot/
+EducaBot_v2/
 ├── src/
-│   └── main.cpp                  ← programa actual (joystick por nombres)
-├── backups/                      ← versiones de prueba anteriores
-│   ├── main_joystick_raw.cpp.bak     ← salida cruda (LX=.. BTN=0x..)
-│   ├── main_joystick_raw_hex.cpp.bak ← volcado hex por notificación (era joystick_ident)
-│   ├── main_ble_scan_v1.cpp.bak      ← primer escaneo BLE
-│   ├── main_servo_scan_backup.cpp.bak← probador de servos (GPIO 14/15)
-│   └── main_ws2812_backup.cpp.bak    ← probador de LEDs WS2812
-├── platformio.ini
+│   └── main.cpp                       ← Programa principal
+├── lib/
+│   ├── DifferentialDrive/             ← Tracción diferencial (HR8833 + LEDC)
+│   ├── GamepadData/                   ← Parseo del report HID
+│   ├── JoystickBLE/                   ← Gestión BLE (NimBLE)
+│   └── NeoPixelEffects/              ← Efectos WS2812
+├── docs/                              ← Documentación de cada biblioteca
+├── backups/                           ← Versiones de prueba anteriores
+├── platformio.ini                     ← Configuración PlatformIO (ESP32-S3)
 └── README.md
 ```
+
+│ ├── main_ble_scan_v1.cpp.bak ← primer escaneo BLE
+│ ├── main_servo_scan_backup.cpp.bak← probador de servos (GPIO 14/15)
+│ └── main_ws2812_backup.cpp.bak ← probador de LEDs WS2812
+├── platformio.ini
+└── README.md
+
+````
 
 ---
 
@@ -148,7 +255,7 @@ pio run -e esp32-s3-devkitc-1 --target upload
 
 # Monitor serie
 pio device monitor -e esp32-s3-devkitc-1
-```
+````
 
 Velocidad del monitor: **115200 baudios**.
 
