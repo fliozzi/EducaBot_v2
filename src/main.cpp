@@ -19,7 +19,7 @@ constexpr uint8_t CANT_LEDS = 6;
 constexpr uint8_t BRILLO_LEDS = 48;
 
 // Servos (SAT1 y SAT2 en conectores RJ11 de la EduPlugPower)
-constexpr uint8_t PIN_SERVO1 = 15;
+constexpr uint8_t PIN_SERVO1 = 14;
 constexpr uint8_t PIN_SERVO2 = 15;
 
 // ---- Objetos globales ----------------------------------------------------

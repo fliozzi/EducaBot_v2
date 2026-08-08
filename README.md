@@ -42,7 +42,7 @@ motores, servos y bus I²C, más un **header de 2 pines para speaker**.
 | **1**       | 8                | Entrada/sensor digital   |
 | **2**       | 2                | Tira WS2812 (NeoPixel)   |
 | **I²C**     | SDA/SCL          | Bus I²C para sensores    |
-| **SAT1**    | 15               | Servo de potencia 1      |
+| **SAT1**    | 14               | Servo de potencia 1      |
 | **SAT2**    | 15               | Servo de potencia 2      |
 | **MD**      | BIN1=41, BIN2=42 | Motor derecho (HR8833)   |
 | **MI**      | AIN1=39, AIN2=40 | Motor izquierdo (HR8833) |
