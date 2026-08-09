@@ -45,6 +45,14 @@ bool animConectadoDisparada = false;
 bool paroTotalActivo = false;
 bool yPresionadaAnterior = false;
 
+// ---- Enclavamiento de servos ---------------------------------------------
+bool sat1Enclavado = false;
+bool sat2Enclavado = false;
+uint8_t sat1AnguloEnclavado = 0;
+uint8_t sat2AnguloEnclavado = 0;
+bool xAnterior = false;
+bool bAnterior = false;
+
 // ===================================================================
 void setup() {
   leds.begin(PIN_LEDS, CANT_LEDS);
@@ -94,12 +102,52 @@ void loop() {
     }
 
     // ---- Mapeo normal de servos (valores calibrados) ----
-    servo1.writeFromJoystick(g.ly, calibracion.getZero(0),
-                             calibracion.getSpan(0));
-    servo2.writeFromJoystick(g.lx, calibracion.getZero(1),
-                             calibracion.getSpan(1));
+    // ---- Enclavamiento de servos ----
+    bool xPresionado = g.botonPresionado(GamepadData::BTN_X);
+    bool bPresionado = g.botonPresionado(GamepadData::BTN_B);
+
+    if (xPresionado && !xAnterior) {
+      sat1Enclavado = !sat1Enclavado;
+      if (sat1Enclavado) {
+        sat1AnguloEnclavado = servo1.getCurrentAngle();
+      }
+    }
+    xAnterior = xPresionado;
+
+    if (bPresionado && !bAnterior) {
+      sat2Enclavado = !sat2Enclavado;
+      if (sat2Enclavado) {
+        sat2AnguloEnclavado = servo2.getCurrentAngle();
+      }
+    }
+    bAnterior = bPresionado;
+
+    // ---- Mapeo de servos (con enclavamiento) ----
+    if (sat1Enclavado) {
+      servo1.writeAngle(sat1AnguloEnclavado);
+    } else {
+      servo1.writeFromJoystickSmooth(g.ly, calibracion.getZero(0),
+                                     calibracion.getSpan(0), g.r2, true);
+    }
+    if (sat2Enclavado) {
+      servo2.writeAngle(sat2AnguloEnclavado);
+    } else {
+      servo2.writeFromJoystickSmooth(g.lx, calibracion.getZero(1),
+                                     calibracion.getSpan(1), g.r2, false);
+    }
 
     leds.mostrarEstadoControl(bloqueoGiro, bloqueoAvance, paroTotalActivo);
+
+    // ---- LEDs de enclavamiento ----
+    if (sat1Enclavado) {
+      leds.getStrip().setPixelColor(3, leds.getStrip().Color(255, 0, 255));
+    }
+    if (sat2Enclavado) {
+      leds.getStrip().setPixelColor(2, leds.getStrip().Color(255, 0, 0));
+    }
+    if (sat1Enclavado || sat2Enclavado) {
+      leds.getStrip().show();
+    }
 
     if (paroTotalActivo) {
       traccion.brake();

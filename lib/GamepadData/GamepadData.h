@@ -6,6 +6,8 @@
 #include <stdint.h>
 
 struct GamepadData {
+  static constexpr uint16_t BTN_B = 0x0002;
+  static constexpr uint16_t BTN_X = 0x0008;
   static constexpr uint16_t BTN_Y = 0x0010;
   static constexpr uint16_t BTN_L1 = 0x0040;
   static constexpr uint16_t BTN_R1 = 0x0080;

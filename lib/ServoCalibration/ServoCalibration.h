@@ -31,8 +31,9 @@ class ServoCalibration {
 public:
   enum class Estado {
     NORMAL,
+    CAL_CLEAR, // A 5 s → flash rosa 3 s → borrar NVS → NORMAL
     CAL_WAIT,  // SELECT presionado, esperando 5 s (operación normal)
-    CAL_ENTER, // 6 LEDs flash 200 Hz, 3 s, START alterna servo
+    CAL_ENTER, // 6 LEDs flash blanco, 3 s, START alterna servo
     CAL_ZERO,  // calibrando zero del servo activo
     CAL_SPAN   // calibrando span del servo activo
   };
@@ -50,8 +51,8 @@ public:
 
   /// true si la calibración está activa (bloquear tracción).
   bool enCalibracion() const {
-    return estado == Estado::CAL_ENTER || estado == Estado::CAL_ZERO ||
-           estado == Estado::CAL_SPAN;
+    return estado == Estado::CAL_CLEAR || estado == Estado::CAL_ENTER ||
+           estado == Estado::CAL_ZERO || estado == Estado::CAL_SPAN;
   }
 
   uint16_t getZero(uint8_t idx) const { return zero[idx]; }
@@ -79,6 +80,8 @@ private:
   // Temporización
   unsigned long tiempoEstado = 0;
   unsigned long ultimoFlash = 0;
+  unsigned long startPresionadoMs = 0;
+  unsigned long aPresionadoMs = 0;
   bool flashState = false;
 
   // Detección de flancos

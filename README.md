@@ -56,25 +56,48 @@ motores, servos y bus I²C, más un **header de 2 pines para speaker**.
 
 ## 🎮 Controles del robot
 
-| Control                | Acción                                                                        |
-| ---------------------- | ----------------------------------------------------------------------------- |
-| **Stick derecho (RY)** | Avance / reversa                                                              |
-| **Stick derecho (RX)** | Giro izquierda / derecha                                                      |
-| **L1**                 | 🔒 Bloquea el giro (fuerza RX = centro)                                       |
-| **R1**                 | 🔒 Bloquea avance/reversa (fuerza RY = centro)                                |
-| **Y**                  | ⏯️ Toggle de **paro total enclavado** (freno activo)                          |
-| **L2 (analógico)**     | 🎯 Atenuador de velocidad: suelto = máxima potencia, a fondo = modo precisión |
+### Tracción
 
-### Indicadores LED de estado
+| Control                | Acción                                           |
+| ---------------------- | ------------------------------------------------ |
+| **Stick derecho (RY)** | Avance / reversa                                 |
+| **Stick derecho (RX)** | Giro izquierda / derecha                         |
+| **L1**                 | 🔒 Bloquea el giro                               |
+| **R1**                 | 🔒 Bloquea avance/reversa                        |
+| **Y**                  | ⏯️ Toggle de paro total enclavado (freno activo) |
+| **L2 (analógico)**     | 🎯 Atenuador de velocidad de motores             |
 
-| LED                         | Significado                       |
-| --------------------------- | --------------------------------- |
-| 🔴 LED ① fijo               | Giro bloqueado (L1 presionado)    |
-| 🔴 LED ⑥ fijo               | Avance bloqueado (R1 presionado)  |
-| 🟠 LEDs ② y ⑤ intermitentes | Paro total activo (Y enclavado)   |
-| 🌈 Arcoíris giratorio       | Escaneando joystick BLE           |
-| 🟢 Pulso verde + fade-out   | Conexión establecida              |
-| ⚫ Todos apagados           | Operación normal (ahorro batería) |
+### Servos
+
+| Control                  | Acción                                                |
+| ------------------------ | ----------------------------------------------------- |
+| **Stick izquierdo (LY)** | 🎯 Servo SAT1 (centro→arriba)                         |
+| **Stick izquierdo (LX)** | 🎯 Servo SAT2 (centro→derecha)                        |
+| **R2 (analógico)**       | 🐢 Velocidad de servos (1× → 1/5×, calibración 1/10×) |
+| **X**                    | 📌 Enclavar SAT1 (LED ③ violeta)                      |
+| **B**                    | 📌 Enclavar SAT2 (LED ② rojo)                         |
+| **SELECT (5 s)**         | 🔧 Entrar en calibración de servos                    |
+| **START**                | Alternar SAT1↔SAT2 / Salir de calibración             |
+| **A**                    | ✅ Confirmar zero/span en calibración                 |
+| **A (5 s)**              | 🗑️ Borrar calibración (vuelve a defaults)             |
+
+### 💡 Mapa de LEDs
+
+| LED (índice) | Color                 | Significado                       |
+| ------------ | --------------------- | --------------------------------- |
+| ⓪ (0)        | 🔴 Rojo fijo          | Giro bloqueado (L1)               |
+| ① (1)        | 🟠 Ámbar 2 Hz         | Paro total activo (Y)             |
+| ② (2)        | 🔴 Rojo fijo          | **SAT2 enclavado** (B)            |
+| ③ (3)        | 🟣 Violeta fijo       | **SAT1 enclavado** (X)            |
+| ④ (4)        | 🟠 Ámbar 2 Hz         | Paro total activo (Y)             |
+| ⑤ (5)        | 🔴 Rojo fijo          | Avance bloqueado (R1)             |
+| Todos        | 🌈 Arcoíris giratorio | Escaneando joystick BLE           |
+| Todos        | 🟢 Pulso verde + fade | Conexión establecida              |
+| Todos        | ⚫ Apagados           | Operación normal (ahorro batería) |
+| Todos        | ⚪ Blanco ~6 Hz       | Entrando en calibración           |
+| Todos        | 🩷 Rosa ~6 Hz         | Borrando calibración              |
+| ⑤ (5)        | 🟡 Amarillo           | Calibrando SAT1                   |
+| ⑤ (5)        | 🔵 Azul               | Calibrando SAT2                   |
 
 ---
 
@@ -88,8 +111,8 @@ El proyecto se compone de **6 bibliotecas originales** (en `lib/`):
 | **GamepadData**       | Parseo del report HID de 10 bytes: 4 ejes, D-pad, 12 botones, gatillos L2/R2 duales (analógico + digital)                        |
 | **DifferentialDrive** | Tracción diferencial con mezcla arcade, normalización anti-saturación, deadzone, atenuación L2, modos de decaimiento Slow/Fast   |
 | **NeoPixelEffects**   | 3 efectos en tira WS2812 de 6 LEDs: arcoíris giratorio (escaneo), pulso verde (conexión), indicadores rojo/ámbar (bloqueos)      |
-| **ServoDriver**       | Capa de hardware para servos con ESP32Servo en modo MCPWM (sin conflicto con LEDC de motores)                                    |
-| **ServoCalibration**  | Máquina de estados de calibración con persistencia en NVS (Preferences). Flujo: SELECT 5s → calibrar zero → calibrar span        |
+| **ServoDriver**       | Capa de hardware MCPWM: mapeo centro→extremo, suavizado continuo con R2, enclavamiento                                           |
+| **ServoCalibration**  | Máquina de estados de calibración con persistencia en NVS. Flujo: SELECT 5s → calibrar zero/span. Borrado con A 5s               |
 
 ### Documentación detallada
 
@@ -98,8 +121,9 @@ Cada biblioteca tiene su propia documentación en `docs/`:
 - [`DifferentialDrive.md`](docs/DifferentialDrive.md) — mezcla arcade, modos PWM, frenado
 - [`JoystickBLE.md`](docs/JoystickBLE.md) — arquitectura BLE, seguridad, reconexión
 - [`NeoPixelEffects.md`](docs/NeoPixelEffects.md) — efectos de iluminación y estados
-- [`ServoDriver.md`](docs/ServoDriver.md) — capa de hardware para servos
-- [`ServoCalibration.md`](docs/ServoCalibration.md) — máquina de calibración y NVS
+- [`ServoDriver.md`](docs/ServoDriver.md) — capa de hardware, mapeo centro→extremo, suavizado
+- [`ServoCalibration.md`](docs/ServoCalibration.md) — máquina de calibración, NVS, LEDs
+- [`ServoEnclavamiento.md`](docs/ServoEnclavamiento.md) — enclavamiento con X/B
 
 ---
 
@@ -160,12 +184,12 @@ El joystick **izquierdo** controla los dos servos de potencia (SAT1 y SAT2):
 La calibración permite ajustar el **zero** y **span** de cada servo. Los
 valores se guardan en NVS (Preferences) y persisten entre reinicios.
 
-| Paso | Disparador     | LEDs                         | Acción                                |
-| ---- | -------------- | ---------------------------- | ------------------------------------- |
-| 1    | **SELECT** 5 s | 6 LEDs flash blanco (3 s)    | START alterna SAT1 ↔ SAT2             |
-| 2    | Automático     | LED ⑥ rojo/azul + LED ① rojo | Mover stick → posicionar zero → **A** |
-| 3    | **A**          | LED ⑥ rojo/azul + LED ② rojo | Mover stick → posicionar span → **A** |
-| 4    | **A**          | LED ② verde (breve)          | Guarda en NVS y sale                  |
+| Paso | Disparador     | LEDs                             | Acción                                |
+| ---- | -------------- | -------------------------------- | ------------------------------------- |
+| 1    | **SELECT** 5 s | 6 LEDs flash blanco (3 s)        | START alterna SAT1 ↔ SAT2             |
+| 2    | Automático     | LED ⑥ amarillo/azul + LED ① rojo | Mover stick → posicionar zero → **A** |
+| 3    | **A**          | LED ⑥ amarillo/azul + LED ② rojo | Mover stick → posicionar span → **A** |
+| 4    | **A**          | LED ② verde (breve)              | Guarda en NVS y sale                  |
 
 > Durante la calibración los motores de tracción se desactivan.
 
@@ -262,12 +286,17 @@ EducaBot_v2/
 │   ├── ServoDriver/                  ← Capa de hardware para servos (MCPWM)
 │   └── ServoCalibration/            ← Máquina de calibración con NVS
 ├── docs/                              ← Documentación de cada biblioteca
+│   ├── DifferentialDrive.md
+│   ├── JoystickBLE.md
+│   ├── NeoPixelEffects.md
+│   ├── ServoDriver.md
+│   ├── ServoCalibration.md
+│   └── ServoEnclavamiento.md
 ├── backups/                           ← Versiones de prueba anteriores
 ├── platformio.ini                     ← Configuración PlatformIO (ESP32-S3)
 └── README.md
 ```
 
-│ ├── main_ble_scan_v1.cpp.bak ← primer escaneo BLE
 │ ├── main_servo_scan_backup.cpp.bak← probador de servos (GPIO 14/15)
 │ └── main_ws2812_backup.cpp.bak ← probador de LEDs WS2812
 ├── platformio.ini

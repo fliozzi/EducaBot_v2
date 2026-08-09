@@ -58,13 +58,59 @@ void ServoCalibration::manejar(const GamepadData &gamepad,
   const bool start = gamepad.botonPresionado(BTN_START);
   const bool a = gamepad.botonPresionado(BTN_A);
 
+  // Detectar flancos para medir sostenido
+  if (start && !startAnterior) {
+    startPresionadoMs = millis();
+  }
+  if (a && !aAnterior) {
+    aPresionadoMs = millis();
+  }
+
   switch (estado) {
 
   // ============================================================
   case Estado::NORMAL: {
+    // A 5 s → borrar calibración
+    if (a && millis() - aPresionadoMs >= 5000) {
+      estado = Estado::CAL_CLEAR;
+      tiempoEstado = millis();
+      ultimoFlash = millis();
+      flashState = false;
+      break;
+    }
+    // SELECT → entrar en calibración
     if (select && !selectAnterior) {
       estado = Estado::CAL_WAIT;
       tiempoEstado = millis();
+    }
+    break;
+  }
+
+  // ============================================================
+  case Estado::CAL_CLEAR: {
+    // Flash rosa (~6 Hz) en los 6 LEDs durante 3 s
+    const unsigned long ahora = millis();
+    if (ahora - ultimoFlash >= 80) {
+      ultimoFlash = ahora;
+      flashState = !flashState;
+      if (flashState) {
+        for (uint8_t i = 0; i < 6; ++i) {
+          tira.setPixelColor(i, tira.Color(255, 20, 147));
+        }
+      } else {
+        tira.clear();
+      }
+      tira.show();
+    }
+    // A los 3 s → borrar NVS y volver
+    if (ahora - tiempoEstado >= 3000) {
+      zero[0] = 0;
+      span[0] = 180;
+      zero[1] = 0;
+      span[1] = 180;
+      guardar(); // persistir defaults en NVS (toma efecto inmediato)
+      limpiarTira(tira);
+      estado = Estado::NORMAL;
     }
     break;
   }
@@ -88,19 +134,32 @@ void ServoCalibration::manejar(const GamepadData &gamepad,
 
   // ============================================================
   case Estado::CAL_ENTER: {
-    // START alterna SAT1 ↔ SAT2 (flanco)
+    // START (flanco): SAT1→toggle SAT2,  SAT2→salir
     if (start && !startAnterior) {
-      servoIdx = 1 - servoIdx;
+      if (servoIdx == 0) {
+        servoIdx = 1;
+      } else {
+        limpiarTira(tira);
+        estado = Estado::NORMAL;
+        break;
+      }
     }
 
-    // Flash blanco ~200 Hz en los 6 LEDs durante 3 s
+    // START sostenido 2 s → salir sin calibrar (universal)
+    if (start && millis() - startPresionadoMs >= 2000) {
+      limpiarTira(tira);
+      estado = Estado::NORMAL;
+      break;
+    }
+
+    // Flash blanco visible (~6 Hz) en los 6 LEDs durante 3 s
     const unsigned long ahora = millis();
-    if (ahora - ultimoFlash >= 3) {
+    if (ahora - ultimoFlash >= 80) {
       ultimoFlash = ahora;
       flashState = !flashState;
       if (flashState) {
         for (uint8_t i = 0; i < 6; ++i) {
-          tira.setPixelColor(i, tira.Color(80, 80, 80));
+          tira.setPixelColor(i, tira.Color(255, 255, 255));
         }
       } else {
         tira.clear();
@@ -119,11 +178,22 @@ void ServoCalibration::manejar(const GamepadData &gamepad,
 
   // ============================================================
   case Estado::CAL_ZERO: {
+    // START (flanco): SAT1→toggle SAT2,  SAT2→salir
+    if (start && !startAnterior) {
+      if (servoIdx == 0) {
+        servoIdx = 1;
+      } else {
+        limpiarTira(tira);
+        estado = Estado::NORMAL;
+        break;
+      }
+    }
+
     limpiarTira(tira);
 
-    // LED6 (idx 5): rojo=SAT1, azul=SAT2
+    // LED6 (idx 5): amarillo=SAT1, azul=SAT2
     if (servoIdx == 0) {
-      tira.setPixelColor(5, tira.Color(255, 0, 0));
+      tira.setPixelColor(5, tira.Color(255, 200, 0));
     } else {
       tira.setPixelColor(5, tira.Color(0, 0, 255));
     }
@@ -135,13 +205,24 @@ void ServoCalibration::manejar(const GamepadData &gamepad,
     {
       const uint8_t eje = (servoIdx == 0) ? gamepad.ly : gamepad.lx;
       ServoDriver &s = (servoIdx == 0) ? servo1 : servo2;
-      s.writeFromJoystick(eje, 0, 180);
+      s.writeFromJoystickSmooth(eje, 0, 180, gamepad.r2, servoIdx == 0, true);
+    }
+
+    // START sostenido 2 s → salir sin calibrar
+    if (start && millis() - startPresionadoMs >= 2000) {
+      limpiarTira(tira);
+      estado = Estado::NORMAL;
+      break;
     }
 
     // A → guardar zero
     if (a && !aAnterior) {
       const uint8_t eje = (servoIdx == 0) ? gamepad.ly : gamepad.lx;
-      zero[servoIdx] = ((uint16_t)eje * 180) / 255;
+      if (servoIdx == 0) {
+        zero[0] = ((128 - (int32_t)eje) * 180) / 128;
+      } else {
+        zero[1] = (((int32_t)eje - 128) * 180) / 127;
+      }
 
       // LED0 verde (confirmación breve)
       tira.setPixelColor(0, tira.Color(0, 255, 0));
@@ -155,11 +236,25 @@ void ServoCalibration::manejar(const GamepadData &gamepad,
 
   // ============================================================
   case Estado::CAL_SPAN: {
+    // START (flanco): SAT1→toggle SAT2 y volver a CAL_ZERO,  SAT2→salir
+    if (start && !startAnterior) {
+      if (servoIdx == 0) {
+        servoIdx = 1;
+        estado = Estado::CAL_ZERO;
+        tiempoEstado = millis();
+        break;
+      } else {
+        limpiarTira(tira);
+        estado = Estado::NORMAL;
+        break;
+      }
+    }
+
     limpiarTira(tira);
 
-    // LED6 (idx 5): rojo=SAT1, azul=SAT2
+    // LED6 (idx 5): amarillo=SAT1, azul=SAT2
     if (servoIdx == 0) {
-      tira.setPixelColor(5, tira.Color(255, 0, 0));
+      tira.setPixelColor(5, tira.Color(255, 200, 0));
     } else {
       tira.setPixelColor(5, tira.Color(0, 0, 255));
     }
@@ -171,13 +266,24 @@ void ServoCalibration::manejar(const GamepadData &gamepad,
     {
       const uint8_t eje = (servoIdx == 0) ? gamepad.ly : gamepad.lx;
       ServoDriver &s = (servoIdx == 0) ? servo1 : servo2;
-      s.writeFromJoystick(eje, 0, 180);
+      s.writeFromJoystickSmooth(eje, 0, 180, gamepad.r2, servoIdx == 0, true);
+    }
+
+    // START sostenido 2 s → salir sin calibrar
+    if (start && millis() - startPresionadoMs >= 2000) {
+      limpiarTira(tira);
+      estado = Estado::NORMAL;
+      break;
     }
 
     // A → guardar span y salir
     if (a && !aAnterior) {
       const uint8_t eje = (servoIdx == 0) ? gamepad.ly : gamepad.lx;
-      span[servoIdx] = ((uint16_t)eje * 180) / 255;
+      if (servoIdx == 0) {
+        span[0] = ((128 - (int32_t)eje) * 180) / 128;
+      } else {
+        span[1] = (((int32_t)eje - 128) * 180) / 127;
+      }
 
       // LED1 verde (confirmación breve)
       tira.setPixelColor(1, tira.Color(0, 255, 0));
