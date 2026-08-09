@@ -17,6 +17,10 @@ sobre un **ESP32-S3** y utiliza **6 bibliotecas propias** desarrolladas
 | **Control**        | Joystick GamePadPlus V3 por BLE (modo Home + X)    |
 | **Framework**      | Arduino sobre PlatformIO                           |
 
+<p align="center">
+  <img src="docs/eduplugPower.png" alt="Robot EducaBot" width="80%">
+</p>
+
 ---
 
 ## 🔌 Placa EduPlugPower
