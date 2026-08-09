@@ -80,7 +80,7 @@ motores, servos y bus I²C, más un **header de 2 pines para speaker**.
 
 ## 🧩 Bibliotecas propias
 
-El proyecto se compone de **4 bibliotecas originales** (en `lib/`):
+El proyecto se compone de **6 bibliotecas originales** (en `lib/`):
 
 | Biblioteca            | Responsabilidad                                                                                                                  |
 | --------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
@@ -88,6 +88,8 @@ El proyecto se compone de **4 bibliotecas originales** (en `lib/`):
 | **GamepadData**       | Parseo del report HID de 10 bytes: 4 ejes, D-pad, 12 botones, gatillos L2/R2 duales (analógico + digital)                        |
 | **DifferentialDrive** | Tracción diferencial con mezcla arcade, normalización anti-saturación, deadzone, atenuación L2, modos de decaimiento Slow/Fast   |
 | **NeoPixelEffects**   | 3 efectos en tira WS2812 de 6 LEDs: arcoíris giratorio (escaneo), pulso verde (conexión), indicadores rojo/ámbar (bloqueos)      |
+| **ServoDriver**       | Capa de hardware para servos con ESP32Servo en modo MCPWM (sin conflicto con LEDC de motores)                                    |
+| **ServoCalibration**  | Máquina de estados de calibración con persistencia en NVS (Preferences). Flujo: SELECT 5s → calibrar zero → calibrar span        |
 
 ### Documentación detallada
 
@@ -96,6 +98,8 @@ Cada biblioteca tiene su propia documentación en `docs/`:
 - [`DifferentialDrive.md`](docs/DifferentialDrive.md) — mezcla arcade, modos PWM, frenado
 - [`JoystickBLE.md`](docs/JoystickBLE.md) — arquitectura BLE, seguridad, reconexión
 - [`NeoPixelEffects.md`](docs/NeoPixelEffects.md) — efectos de iluminación y estados
+- [`ServoDriver.md`](docs/ServoDriver.md) — capa de hardware para servos
+- [`ServoCalibration.md`](docs/ServoCalibration.md) — máquina de calibración y NVS
 
 ---
 
@@ -104,6 +108,8 @@ Cada biblioteca tiene su propia documentación en `docs/`:
 | GPIO | Función           | Notas                   |
 | ---- | ----------------- | ----------------------- |
 | 2    | WS2812 (NeoPixel) | Tira de 6 LEDs          |
+| 14   | Servo SAT1        | MCPWM (señal servo)     |
+| 15   | Servo SAT2        | MCPWM (señal servo)     |
 | 39   | Motor izq. IN1    | Canal LEDC 0            |
 | 40   | Motor izq. IN2    | Canal LEDC 1            |
 | 41   | Motor der. IN1    | Canal LEDC 2            |
@@ -137,6 +143,31 @@ El robot usa **mezcla arcade**: un solo stick (derecho) controla avance/reversa
 Cuando se presiona Y, se activa un **freno enclavado**: ambos canales de cada
 motor reciben `pwmMax` → el HR8833 cortocircuita los motores → freno activo.
 Se libera volviendo a presionar Y (toggle con detección de flanco).
+
+---
+
+## 🎯 Servos y calibración
+
+El joystick **izquierdo** controla los dos servos de potencia (SAT1 y SAT2):
+
+| Eje                 | Servo por defecto | Mapeo                  |
+| ------------------- | ----------------- | ---------------------- |
+| **LY** (vertical)   | SAT1 (GPIO 14)    | 0 → zero₁, 255 → span₁ |
+| **LX** (horizontal) | SAT2 (GPIO 15)    | 0 → zero₂, 255 → span₂ |
+
+### Calibración (SELECT 5 segundos)
+
+La calibración permite ajustar el **zero** y **span** de cada servo. Los
+valores se guardan en NVS (Preferences) y persisten entre reinicios.
+
+| Paso | Disparador     | LEDs                         | Acción                                |
+| ---- | -------------- | ---------------------------- | ------------------------------------- |
+| 1    | **SELECT** 5 s | 6 LEDs flash blanco (3 s)    | START alterna SAT1 ↔ SAT2             |
+| 2    | Automático     | LED ⑥ rojo/azul + LED ① rojo | Mover stick → posicionar zero → **A** |
+| 3    | **A**          | LED ⑥ rojo/azul + LED ② rojo | Mover stick → posicionar span → **A** |
+| 4    | **A**          | LED ② verde (breve)          | Guarda en NVS y sale                  |
+
+> Durante la calibración los motores de tracción se desactivan.
 
 ---
 
@@ -227,7 +258,9 @@ EducaBot_v2/
 │   ├── DifferentialDrive/             ← Tracción diferencial (HR8833 + LEDC)
 │   ├── GamepadData/                   ← Parseo del report HID
 │   ├── JoystickBLE/                   ← Gestión BLE (NimBLE)
-│   └── NeoPixelEffects/              ← Efectos WS2812
+│   ├── NeoPixelEffects/              ← Efectos WS2812
+│   ├── ServoDriver/                  ← Capa de hardware para servos (MCPWM)
+│   └── ServoCalibration/            ← Máquina de calibración con NVS
 ├── docs/                              ← Documentación de cada biblioteca
 ├── backups/                           ← Versiones de prueba anteriores
 ├── platformio.ini                     ← Configuración PlatformIO (ESP32-S3)

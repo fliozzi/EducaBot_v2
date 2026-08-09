@@ -45,6 +45,9 @@ public:
   /// Devuelve true si la animación de conexión ya terminó.
   bool animConectadoTerminada() const;
 
+  /// Acceso directo a la tira NeoPixel (para calibración de servos).
+  Adafruit_NeoPixel &getStrip() { return tira; }
+
 private:
   Adafruit_NeoPixel tira{6, 4, NEO_GRB + NEO_KHZ800};
   uint8_t numLeds = 6;

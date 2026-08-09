@@ -5,13 +5,16 @@
 /// - JoystickBLE: escaneo, conexión y reportes HID del gamepad.
 /// - GamepadData:  parseo del report (ejes, botones, D-pad).
 /// - NeoPixelEffects: animaciones y señalización de los 6 LED WS2812.
+/// - ServoDriver: capa de hardware para servos (MCPWM).
+/// - ServoCalibration: máquina de estados de calibración con NVS.
 
 #include <Arduino.h>
-#include <ESP32Servo.h>
 
 #include "DifferentialDrive.h"
 #include "JoystickBLE.h"
 #include "NeoPixelEffects.h"
+#include "ServoCalibration.h"
+#include "ServoDriver.h"
 
 // ---- Configuración de hardware -------------------------------------------
 constexpr uint8_t PIN_LEDS = 2; // GPIO del bus WS2812 (ajustar según placa)
@@ -25,8 +28,9 @@ constexpr uint8_t PIN_SERVO2 = 15;
 // ---- Objetos globales ----------------------------------------------------
 JoystickBLE joystick;
 NeoPixelEffects leds;
-Servo servo1;
-Servo servo2;
+ServoDriver servo1;
+ServoDriver servo2;
+ServoCalibration calibracion;
 
 constexpr DifferentialDrive::MotorPins MOTOR_IZQUIERDO(39, 40, 0, 1, false);
 constexpr DifferentialDrive::MotorPins MOTOR_DERECHO(41, 42, 2, 3, true);
@@ -41,21 +45,15 @@ bool animConectadoDisparada = false;
 bool paroTotalActivo = false;
 bool yPresionadaAnterior = false;
 
-// ---- Estado barrido de servos --------------------------------------------
-int16_t servoAngulo = 0;
-int8_t servoDireccion = 1;
-unsigned long ultimoServoMs = 0;
-
 // ===================================================================
 void setup() {
   leds.begin(PIN_LEDS, CANT_LEDS);
   leds.setBrightness(BRILLO_LEDS);
   traccion.begin();
 
-  servo1.setPeriodHertz(50);
-  servo1.attach(PIN_SERVO1, 544, 2400);
-  servo2.setPeriodHertz(50);
-  servo2.attach(PIN_SERVO2, 544, 2400);
+  servo1.begin(PIN_SERVO1);
+  servo2.begin(PIN_SERVO2);
+  calibracion.begin();
 
   joystick.iniciar();
   // joystick.setVerbose(false); // descomentar para máxima eficiencia
@@ -88,22 +86,20 @@ void loop() {
     }
     yPresionadaAnterior = yPresionada;
 
-    leds.mostrarEstadoControl(bloqueoGiro, bloqueoAvance, paroTotalActivo);
+    // ---- Calibración de servos ----
+    calibracion.manejar(g, leds.getStrip(), servo1, servo2);
 
-    // ---- Barrido cíclico de servos (prueba) ----
-    if (millis() - ultimoServoMs >= 15) {
-      ultimoServoMs = millis();
-      servoAngulo += servoDireccion;
-      if (servoAngulo >= 180) {
-        servoDireccion = -1;
-        servoAngulo = 180;
-      } else if (servoAngulo <= 0) {
-        servoDireccion = 1;
-        servoAngulo = 0;
-      }
-      servo1.write(servoAngulo);
-      servo2.write(180 - servoAngulo); // espejado: opuesto al servo 1
+    if (calibracion.enCalibracion()) {
+      return; // no mover motores ni LEDs normales durante calibración
     }
+
+    // ---- Mapeo normal de servos (valores calibrados) ----
+    servo1.writeFromJoystick(g.ly, calibracion.getZero(0),
+                             calibracion.getSpan(0));
+    servo2.writeFromJoystick(g.lx, calibracion.getZero(1),
+                             calibracion.getSpan(1));
+
+    leds.mostrarEstadoControl(bloqueoGiro, bloqueoAvance, paroTotalActivo);
 
     if (paroTotalActivo) {
       traccion.brake();
