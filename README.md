@@ -4,7 +4,7 @@
 
 Robot tipo autito de **tracción diferencial** (2 motores DC) controlado de
 forma inalámbrica por un **joystick Bluetooth BLE** tipo PlayStation. Funciona
-sobre un **ESP32-S3** y utiliza **4 bibliotecas propias** desarrolladas
+sobre un **ESP32-S3** y utiliza **6 bibliotecas propias** desarrolladas
 íntegramente para este proyecto.
 
 | Componente         | Detalle                                            |
@@ -12,6 +12,7 @@ sobre un **ESP32-S3** y utiliza **4 bibliotecas propias** desarrolladas
 | **Placa**          | ESP32-S3-WROOM-2 (solo BLE, sin Bluetooth Classic) |
 | **Driver motores** | HR8833 (puente H doble)                            |
 | **Motores**        | 2 motores DC en configuración diferencial          |
+| **Servos**         | 2× Tower Pro MG996R (SAT1 GPIO14, SAT2 GPIO15)     |
 | **Iluminación**    | Tira de 6 LEDs WS2812 (NeoPixel)                   |
 | **Control**        | Joystick GamePadPlus V3 por BLE (modo Home + X)    |
 | **Framework**      | Arduino sobre PlatformIO                           |
