@@ -1,0 +1,566 @@
+<!DOCTYPE html><html><head>
+      <title>UML_EducaBot_v2</title>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      
+      <link rel="stylesheet" href="file:///c:\Users\Fernando\.vscode\extensions\shd101wyy.markdown-preview-enhanced-0.8.30\crossnote\dependencies\katex\katex.min.css">
+      
+      
+      
+      <script type="text/javascript" src="file:///c:\Users\Fernando\.vscode\extensions\shd101wyy.markdown-preview-enhanced-0.8.30\crossnote\dependencies\mermaid\mermaid.min.js" charset="UTF-8"></script>
+      
+      
+      
+      <style>
+      code[class*=language-],pre[class*=language-]{color:#333;background:0 0;font-family:Consolas,"Liberation Mono",Menlo,Courier,monospace;text-align:left;white-space:pre;word-spacing:normal;word-break:normal;word-wrap:normal;line-height:1.4;-moz-tab-size:8;-o-tab-size:8;tab-size:8;-webkit-hyphens:none;-moz-hyphens:none;-ms-hyphens:none;hyphens:none}pre[class*=language-]{padding:.8em;overflow:auto;border-radius:3px;background:#f5f5f5}:not(pre)>code[class*=language-]{padding:.1em;border-radius:.3em;white-space:normal;background:#f5f5f5}.token.blockquote,.token.comment{color:#969896}.token.cdata{color:#183691}.token.doctype,.token.macro.property,.token.punctuation,.token.variable{color:#333}.token.builtin,.token.important,.token.keyword,.token.operator,.token.rule{color:#a71d5d}.token.attr-value,.token.regex,.token.string,.token.url{color:#183691}.token.atrule,.token.boolean,.token.code,.token.command,.token.constant,.token.entity,.token.number,.token.property,.token.symbol{color:#0086b3}.token.prolog,.token.selector,.token.tag{color:#63a35c}.token.attr-name,.token.class,.token.class-name,.token.function,.token.id,.token.namespace,.token.pseudo-class,.token.pseudo-element,.token.url-reference .token.variable{color:#795da3}.token.entity{cursor:help}.token.title,.token.title .token.punctuation{font-weight:700;color:#1d3e81}.token.list{color:#ed6a43}.token.inserted{background-color:#eaffea;color:#55a532}.token.deleted{background-color:#ffecec;color:#bd2c00}.token.bold{font-weight:700}.token.italic{font-style:italic}.language-json .token.property{color:#183691}.language-markup .token.tag .token.punctuation{color:#333}.language-css .token.function,code.language-css{color:#0086b3}.language-yaml .token.atrule{color:#63a35c}code.language-yaml{color:#183691}.language-ruby .token.function{color:#333}.language-markdown .token.url{color:#795da3}.language-makefile .token.symbol{color:#795da3}.language-makefile .token.variable{color:#183691}.language-makefile .token.builtin{color:#0086b3}.language-bash .token.keyword{color:#0086b3}pre[data-line]{position:relative;padding:1em 0 1em 3em}pre[data-line] .line-highlight-wrapper{position:absolute;top:0;left:0;background-color:transparent;display:block;width:100%}pre[data-line] .line-highlight{position:absolute;left:0;right:0;padding:inherit 0;margin-top:1em;background:hsla(24,20%,50%,.08);background:linear-gradient(to right,hsla(24,20%,50%,.1) 70%,hsla(24,20%,50%,0));pointer-events:none;line-height:inherit;white-space:pre}pre[data-line] .line-highlight:before,pre[data-line] .line-highlight[data-end]:after{content:attr(data-start);position:absolute;top:.4em;left:.6em;min-width:1em;padding:0 .5em;background-color:hsla(24,20%,50%,.4);color:#f4f1ef;font:bold 65%/1.5 sans-serif;text-align:center;vertical-align:.3em;border-radius:999px;text-shadow:none;box-shadow:0 1px #fff}pre[data-line] .line-highlight[data-end]:after{content:attr(data-end);top:auto;bottom:.4em}html body{font-family:'Helvetica Neue',Helvetica,'Segoe UI',Arial,freesans,sans-serif;font-size:16px;line-height:1.6;color:#333;background-color:#fff;overflow:initial;box-sizing:border-box;word-wrap:break-word}html body>:first-child{margin-top:0}html body h1,html body h2,html body h3,html body h4,html body h5,html body h6{line-height:1.2;margin-top:1em;margin-bottom:16px;color:#000}html body h1{font-size:2.25em;font-weight:300;padding-bottom:.3em}html body h2{font-size:1.75em;font-weight:400;padding-bottom:.3em}html body h3{font-size:1.5em;font-weight:500}html body h4{font-size:1.25em;font-weight:600}html body h5{font-size:1.1em;font-weight:600}html body h6{font-size:1em;font-weight:600}html body h1,html body h2,html body h3,html body h4,html body h5{font-weight:600}html body h5{font-size:1em}html body h6{color:#5c5c5c}html body strong{color:#000}html body del{color:#5c5c5c}html body a:not([href]){color:inherit;text-decoration:none}html body a{color:#08c;text-decoration:none}html body a:hover{color:#00a3f5;text-decoration:none}html body img{max-width:100%}html body>p{margin-top:0;margin-bottom:16px;word-wrap:break-word}html body>ol,html body>ul{margin-bottom:16px}html body ol,html body ul{padding-left:2em}html body ol.no-list,html body ul.no-list{padding:0;list-style-type:none}html body ol ol,html body ol ul,html body ul ol,html body ul ul{margin-top:0;margin-bottom:0}html body li{margin-bottom:0}html body li.task-list-item{list-style:none}html body li>p{margin-top:0;margin-bottom:0}html body .task-list-item-checkbox{margin:0 .2em .25em -1.8em;vertical-align:middle}html body .task-list-item-checkbox:hover{cursor:pointer}html body blockquote{margin:16px 0;font-size:inherit;padding:0 15px;color:#5c5c5c;background-color:#f0f0f0;border-left:4px solid #d6d6d6}html body blockquote>:first-child{margin-top:0}html body blockquote>:last-child{margin-bottom:0}html body hr{height:4px;margin:32px 0;background-color:#d6d6d6;border:0 none}html body table{margin:10px 0 15px 0;border-collapse:collapse;border-spacing:0;display:block;width:100%;overflow:auto;word-break:normal;word-break:keep-all}html body table th{font-weight:700;color:#000}html body table td,html body table th{border:1px solid #d6d6d6;padding:6px 13px}html body dl{padding:0}html body dl dt{padding:0;margin-top:16px;font-size:1em;font-style:italic;font-weight:700}html body dl dd{padding:0 16px;margin-bottom:16px}html body code{font-family:Menlo,Monaco,Consolas,'Courier New',monospace;font-size:.85em;color:#000;background-color:#f0f0f0;border-radius:3px;padding:.2em 0}html body code::after,html body code::before{letter-spacing:-.2em;content:'\00a0'}html body pre>code{padding:0;margin:0;word-break:normal;white-space:pre;background:0 0;border:0}html body .highlight{margin-bottom:16px}html body .highlight pre,html body pre{padding:1em;overflow:auto;line-height:1.45;border:#d6d6d6;border-radius:3px}html body .highlight pre{margin-bottom:0;word-break:normal}html body pre code,html body pre tt{display:inline;max-width:initial;padding:0;margin:0;overflow:initial;line-height:inherit;word-wrap:normal;background-color:transparent;border:0}html body pre code:after,html body pre code:before,html body pre tt:after,html body pre tt:before{content:normal}html body blockquote,html body dl,html body ol,html body p,html body pre,html body ul{margin-top:0;margin-bottom:16px}html body kbd{color:#000;border:1px solid #d6d6d6;border-bottom:2px solid #c7c7c7;padding:2px 4px;background-color:#f0f0f0;border-radius:3px}@media print{html body{background-color:#fff}html body h1,html body h2,html body h3,html body h4,html body h5,html body h6{color:#000;page-break-after:avoid}html body blockquote{color:#5c5c5c}html body pre{page-break-inside:avoid}html body table{display:table}html body img{display:block;max-width:100%;max-height:100%}html body code,html body pre{word-wrap:break-word;white-space:pre}}.markdown-preview{width:100%;height:100%;box-sizing:border-box}.markdown-preview ul{list-style:disc}.markdown-preview ul ul{list-style:circle}.markdown-preview ul ul ul{list-style:square}.markdown-preview ol{list-style:decimal}.markdown-preview ol ol,.markdown-preview ul ol{list-style-type:lower-roman}.markdown-preview ol ol ol,.markdown-preview ol ul ol,.markdown-preview ul ol ol,.markdown-preview ul ul ol{list-style-type:lower-alpha}.markdown-preview .newpage,.markdown-preview .pagebreak{page-break-before:always}.markdown-preview pre.line-numbers{position:relative;padding-left:3.8em;counter-reset:linenumber}.markdown-preview pre.line-numbers>code{position:relative}.markdown-preview pre.line-numbers .line-numbers-rows{position:absolute;pointer-events:none;top:1em;font-size:100%;left:0;width:3em;letter-spacing:-1px;border-right:1px solid #999;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none}.markdown-preview pre.line-numbers .line-numbers-rows>span{pointer-events:none;display:block;counter-increment:linenumber}.markdown-preview pre.line-numbers .line-numbers-rows>span:before{content:counter(linenumber);color:#999;display:block;padding-right:.8em;text-align:right}.markdown-preview .mathjax-exps .MathJax_Display{text-align:center!important}.markdown-preview:not([data-for=preview]) .code-chunk .code-chunk-btn-group{display:none}.markdown-preview:not([data-for=preview]) .code-chunk .status{display:none}.markdown-preview:not([data-for=preview]) .code-chunk .output-div{margin-bottom:16px}.markdown-preview .md-toc{padding:0}.markdown-preview .md-toc .md-toc-details{margin:0;padding:0;border:none}.markdown-preview .md-toc summary.md-toc-link-wrapper{cursor:pointer;list-style-position:outside}.markdown-preview .md-toc summary.md-toc-link-wrapper::marker{font-size:.85em}.markdown-preview .md-toc .md-toc-link-wrapper .md-toc-link{display:inline;padding:.25rem 0}.markdown-preview .md-toc .md-toc-link-wrapper .md-toc-link div,.markdown-preview .md-toc .md-toc-link-wrapper .md-toc-link p{display:inline}.markdown-preview .md-toc .md-toc-link-wrapper.highlighted .md-toc-link{font-weight:800}.markdown-preview .md-toc .md-toc-link-wrapper[data-level='0']{margin-left:12px}.markdown-preview .md-toc .md-toc-link-wrapper[data-level='1']{margin-left:28px}.markdown-preview .md-toc .md-toc-link-wrapper[data-level='2']{margin-left:44px}.markdown-preview .md-toc .md-toc-link-wrapper[data-level='3']{margin-left:60px}.markdown-preview .md-toc .md-toc-link-wrapper[data-level='4']{margin-left:76px}.markdown-preview .md-toc .md-toc-link-wrapper[data-level='5']{margin-left:80px}.markdown-preview a.tag,.markdown-preview a.tag:active,.markdown-preview a.tag:link,.markdown-preview a.tag:visited,.markdown-preview span.tag:not(.token){display:inline-block;background-color:var(--vscode-badge-background,rgba(127,127,127,.18));color:var(--vscode-badge-foreground,currentColor);border-radius:2em;font-size:.85em;font-weight:500;padding:.05em .55em;line-height:1.5;white-space:nowrap;text-decoration:none;text-shadow:none;box-shadow:none;transition:background-color .12s ease,opacity .12s ease}.markdown-preview a.tag{cursor:pointer}.markdown-preview a.tag:focus,.markdown-preview a.tag:hover{background-color:var(--vscode-badge-background,rgba(127,127,127,.32));color:var(--vscode-badge-foreground,currentColor);opacity:.85;text-decoration:none;outline:0}.markdown-preview .wikilink-embed-content{border-left:3px solid var(--vscode-textBlockQuote-border,rgba(128,128,128,.3));background:var(--vscode-textBlockQuote-background,rgba(128,128,128,.05));margin:.5em 0;padding:.5em .75em;border-radius:0 3px 3px 0}.markdown-preview .wikilink-embed-content.wikilink-embed-error{border-left-color:var(--vscode-errorForeground,#cf222e);color:var(--vscode-errorForeground,#cf222e);font-style:italic;opacity:.8}.markdown-preview .wikilink-embed-content h1:first-child,.markdown-preview .wikilink-embed-content h2:first-child,.markdown-preview .wikilink-embed-content h3:first-child,.markdown-preview .wikilink-embed-content h4:first-child,.markdown-preview .wikilink-embed-content h5:first-child,.markdown-preview .wikilink-embed-content h6:first-child{margin-top:.25em}.markdown-preview .wikilink-embed-content .wikilink-embed-content{margin:.25em 0;padding:.25em .5em}.markdown-preview .block-id{display:none}.scrollbar-style::-webkit-scrollbar{width:8px}.scrollbar-style::-webkit-scrollbar-track{border-radius:10px;background-color:transparent}.scrollbar-style::-webkit-scrollbar-thumb{border-radius:5px;background-color:var(--vscode-scrollbarSlider-background,rgba(150,150,150,.66));border:4px solid var(--vscode-scrollbarSlider-background,rgba(150,150,150,.66));background-clip:content-box}.scrollbar-style::-webkit-scrollbar-thumb:hover{background-color:var(--vscode-scrollbarSlider-hoverBackground,rgba(120,120,120,.66))}html body[for=html-export]:not([data-presentation-mode]){position:relative;width:100%;height:100%;top:0;left:0;margin:0;padding:0;overflow:auto}html body[for=html-export]:not([data-presentation-mode]) .markdown-preview{position:relative;top:0;min-height:100vh}@media screen and (min-width:914px){html body[for=html-export]:not([data-presentation-mode]) .markdown-preview{padding:2em calc(50% - 457px + 2em)}}@media screen and (max-width:914px){html body[for=html-export]:not([data-presentation-mode]) .markdown-preview{padding:2em}}@media screen and (max-width:450px){html body[for=html-export]:not([data-presentation-mode]) .markdown-preview{font-size:14px!important;padding:1em}}@media print{html body[for=html-export]:not([data-presentation-mode]) #sidebar-toc-btn{display:none}}html body[for=html-export]:not([data-presentation-mode]) #sidebar-toc-btn{position:fixed;bottom:8px;left:8px;font-size:28px;cursor:pointer;color:inherit;z-index:99;width:32px;text-align:center;opacity:.4}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] #sidebar-toc-btn{opacity:1}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc{position:fixed;top:0;left:0;width:300px;height:100%;padding:32px 0 48px 0;font-size:14px;box-shadow:0 0 4px rgba(150,150,150,.33);box-sizing:border-box;overflow:auto;background-color:inherit}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc::-webkit-scrollbar{width:8px}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc::-webkit-scrollbar-track{border-radius:10px;background-color:transparent}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc::-webkit-scrollbar-thumb{border-radius:5px;background-color:var(--vscode-scrollbarSlider-background,rgba(150,150,150,.66));border:4px solid var(--vscode-scrollbarSlider-background,rgba(150,150,150,.66));background-clip:content-box}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc::-webkit-scrollbar-thumb:hover{background-color:var(--vscode-scrollbarSlider-hoverBackground,rgba(120,120,120,.66))}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc a{text-decoration:none}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc{padding:0 16px}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-details{margin:0;padding:0;border:none}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper .md-toc-link{display:inline;padding:.25rem 0}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper .md-toc-link div,html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper .md-toc-link p{display:inline}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper.highlighted .md-toc-link{font-weight:800}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper[data-level='0']{padding-left:0}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper[data-level='1']{padding-left:16px}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper[data-level='2']{padding-left:32px}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper[data-level='3']{padding-left:48px}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper[data-level='4']{padding-left:64px}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper[data-level='5']{padding-left:80px}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .markdown-preview{left:300px;width:calc(100% - 300px);padding:2em calc(50% - 457px - 300px / 2);margin:0;box-sizing:border-box}@media screen and (max-width:1274px){html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .markdown-preview{padding:2em}}@media screen and (max-width:450px){html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .markdown-preview{width:100%}}html body[for=html-export]:not([data-presentation-mode]):not([html-show-sidebar-toc]) .markdown-preview{left:50%;transform:translateX(-50%)}html body[for=html-export]:not([data-presentation-mode]):not([html-show-sidebar-toc]) .md-sidebar-toc{display:none}
+/* Please visit the URL below for more information: */
+/*   https://shd101wyy.github.io/markdown-preview-enhanced/#/customize-css */
+
+      </style>
+      <!-- The content below will be included at the end of the <head> element. -->
+<script type="text/javascript">
+  document.addEventListener("DOMContentLoaded", function () {
+    // your code here
+  });
+</script>
+    </head>
+    <body for="html-export">
+      <div class="crossnote markdown-preview  ">
+      
+<h1 id="uml-del-proyecto-educabot-v2">UML del Proyecto EducaBot v2 </h1>
+<blockquote>
+<p><strong>Autor:</strong> Prof. Fernando Angel Liozzi — 2026</p>
+<p>Robot educativo de traccion diferencial controlado por joystick Bluetooth BLE.<br>
+ESP32-S3 + Arduino + PlatformIO. 6 bibliotecas propias + 3 externas.</p>
+</blockquote>
+<hr>
+<h2 id="1-diagrama-de-arquitectura-de-componentes">1. Diagrama de Arquitectura de Componentes </h2>
+<div class="mermaid">graph TB
+    subgraph "Control Externo"
+        GP["GamePadPlus V3&lt;br/&gt;Joystick Bluetooth BLE"]
+    end
+
+    subgraph "Comunicacion"
+        BLE["JoystickBLE&lt;br/&gt;NimBLE Client&lt;br/&gt;Escaneo - Conexion - Notificaciones"]
+    end
+
+    subgraph "Nucleo - main.cpp / loop"
+        MAIN["Orquestador Principal&lt;br/&gt;setup / loop"]
+    end
+
+    subgraph "Parseo"
+        GD["GamepadData&lt;br/&gt;Parseo de reportes HID 10 bytes&lt;br/&gt;Ejes - Botones - D-Pad - Gatillos"]
+    end
+
+    subgraph "Servos"
+        SD["ServoDriver&lt;br/&gt;MCPWM - 50 Hz&lt;br/&gt;Suavizado x16 submultiplo"]
+        SC["ServoCalibration&lt;br/&gt;Maquina de estados&lt;br/&gt;NVS Preferences"]
+    end
+
+    subgraph "Iluminacion"
+        NPE["NeoPixelEffects&lt;br/&gt;WS2812 - 6 LEDs&lt;br/&gt;Escaneo - Conexion - Estado - Knight Rider"]
+    end
+
+    subgraph "Traccion"
+        DD["DifferentialDrive&lt;br/&gt;Mezcla arcade&lt;br/&gt;LEDC PWM - Decay Mode"]
+    end
+
+    subgraph "Hardware"
+        HR["HR8833&lt;br/&gt;Puente H doble"]
+        M1["Motor DC Izquierdo"]
+        M2["Motor DC Derecho"]
+        SV1["Servo MG996R&lt;br/&gt;SAT1 - GPIO14"]
+        SV2["Servo MG996R&lt;br/&gt;SAT2 - GPIO15"]
+        WS["WS2812 x 6&lt;br/&gt;GPIO2"]
+    end
+
+    subgraph "Bibliotecas Externas"
+        NIMBLE["NimBLE-Arduino v2.5"]
+        NEOP["Adafruit NeoPixel v1.15"]
+        ESP32S["ESP32Servo v3.2"]
+    end
+
+    GP --&gt;|"BLE HID"| BLE
+    BLE --&gt;|"reportes"| GD
+    BLE --&gt;|"estado"| MAIN
+    GD --&gt;|"GamepadData &amp;"| MAIN
+    MAIN --&gt;|"driveFromJoystick"| DD
+    MAIN --&gt;|"animar / mostrar"| NPE
+    MAIN --&gt;|"writeFromJoystickSmooth"| SD
+    MAIN --&gt;|"manejar calibracion"| SC
+    SC --&gt;|"writeFromJoystickSmooth"| SD
+    SC --&gt;|"NVS"| NVS[("Preferences&lt;br/&gt;NVS Flash")]
+    DD --&gt;|"PWM LEDC"| HR
+    HR --&gt; M1
+    HR --&gt; M2
+    SD --&gt;|"MCPWM"| SV1
+    SD --&gt;|"MCPWM"| SV2
+    NPE --&gt;|"GPIO2"| WS
+
+    BLE -.-&gt;|"usa"| NIMBLE
+    NPE -.-&gt;|"usa"| NEOP
+    SD -.-&gt;|"usa"| ESP32S
+
+    style MAIN fill:#f9f,stroke:#333,stroke-width:3px
+    style BLE fill:#bbf,stroke:#333,stroke-width:2px
+    style GD fill:#bbf,stroke:#333,stroke-width:2px
+    style DD fill:#bfb,stroke:#333,stroke-width:2px
+    style NPE fill:#fbf,stroke:#333,stroke-width:2px
+    style SD fill:#ffb,stroke:#333,stroke-width:2px
+    style SC fill:#fdb,stroke:#333,stroke-width:2px
+</div><hr>
+<h2 id="2-diagrama-de-clases">2. Diagrama de Clases </h2>
+<div class="mermaid">classDiagram
+    direction TB
+
+    class GamepadData {
+        &lt;&lt;struct&gt;&gt;
+        +uint8_t lx, ly, rx, ry
+        +uint8_t dpad
+        +uint8_t l2, r2
+        +uint16_t botones
+        +bool parseFromReport(data, len)
+        +void printToSerial()
+        +void printCompact()
+        +bool botonPresionado(mask)
+        +static nombreDpad(v) string
+        +static nombresBotones(mask, buf, size)
+    }
+
+    class JoystickBLE {
+        -GamepadData gamepad
+        -uint8_t ultimoReport[20]
+        -NimBLEAdvertisedDevice* objetivo
+        -NimBLEClient* cliente
+        -bool encontrado
+        -bool pedirReescaneo
+        -bool verbose
+        +void iniciar()
+        +void manejar()
+        +bool conectado()
+        +GamepadData&amp; estado()
+        +void setVerbose(bool)
+        +void onNotificacion(car, data, len, isNotif)
+        +void onDisconnected(reason)
+        +void onScanResultado(disp)
+        -void iniciarEscaneo()
+        -void conectarYExplorar()
+    }
+
+    class NeoPixelEffects {
+        -Adafruit_NeoPixel tira
+        -uint8_t numLeds
+        -uint8_t brilloGlobal
+        -uint8_t brilloEscaneo
+        -uint8_t tonoBase
+        -FaseConectado faseConectado
+        +void begin(pin, cantidad)
+        +void setBrightness(brillo)
+        +void animarEscaneo()
+        +void iniciarAnimConectado()
+        +bool actualizarAnimConectado()
+        +bool animConectadoTerminada()
+        +void mostrarEstadoControl(bloqueoGiro, bloqueoAvance, paroTotal)
+        +void apagar()
+        +Adafruit_NeoPixel&amp; getStrip()
+    }
+
+    class DifferentialDrive {
+        -MotorPins motorIzq
+        -MotorPins motorDer
+        -Config cfg
+        +DifferentialDrive(izq, der)
+        +DifferentialDrive(izq, der, config)
+        +void begin()
+        +void stop()
+        +void brake()
+        +void driveFromJoystick(rx, ry, l2)
+        +void setDecayMode(mode)
+        +void setPrecisionPwmMax(pwm)
+        -int16_t axisToSigned(raw, invert)
+        -int16_t applyL2Attenuation(valor, l2)
+        -void writeMotor(motor, comando)
+        -void writeChannels(activeCh, inactiveCh, pwm)
+    }
+
+    class DifferentialDrive.MotorPins {
+        &lt;&lt;struct&gt;&gt;
+        +uint8_t in1, in2
+        +uint8_t channel1, channel2
+        +bool invertido
+    }
+
+    class DifferentialDrive.Config {
+        &lt;&lt;struct&gt;&gt;
+        +uint32_t pwmFrequency = 10000
+        +uint8_t pwmResolutionBits = 8
+        +uint8_t pwmMax = 255
+        +uint8_t pwmPrecisionMax = 150
+        +uint8_t joystickCenter = 128
+        +uint8_t joystickDeadzone = 16
+        +DecayMode decayMode = Slow
+        +bool brakeAtZero = false
+    }
+
+    class DifferentialDrive.DecayMode {
+        &lt;&lt;enumeration&gt;&gt;
+        Slow
+        Fast
+    }
+
+    class ServoDriver {
+        -Servo servo
+        -uint8_t pin
+        -uint16_t currentAngle_x16
+        -unsigned long lastSmoothMs
+        -bool smoothInit
+        +void begin(pin)
+        +void writeAngle(angulo)
+        +void writeFromJoystick(eje, zero, span, ejeLY)
+        +void writeFromJoystickSmooth(eje, zero, span, r2, ejeLY, enCalibracion)
+        +uint8_t getCurrentAngle()
+        +void detach()
+    }
+
+    class ServoCalibration {
+        -Estado estado = NORMAL
+        -uint8_t servoIdx
+        -uint16_t zero[2], span[2]
+        -unsigned long tiempoEstado, ultimoFlash, startPresionadoMs, aPresionadoMs
+        -bool flashState, selectAnterior, startAnterior, aAnterior
+        +void begin()
+        +void manejar(gamepad, tira, servo1, servo2)
+        +bool enCalibracion()
+        +uint16_t getZero(idx)
+        +uint16_t getSpan(idx)
+        +uint8_t servoActivo()
+        -void guardar()
+        -void cargar()
+        -void limpiarTira(tira)
+    }
+
+    class ServoCalibration.Estado {
+        &lt;&lt;enumeration&gt;&gt;
+        NORMAL
+        CAL_CLEAR
+        CAL_WAIT
+        CAL_ENTER
+        CAL_ZERO
+        CAL_SPAN
+    }
+
+    class Adafruit_NeoPixel {
+        &lt;&lt;externo&gt;&gt;
+        begin()
+        setPixelColor()
+        setBrightness()
+        getBrightness()
+        clear()
+        show()
+        Color()
+    }
+
+    class Servo {
+        &lt;&lt;externo - ESP32Servo&gt;&gt;
+        attach()
+        write()
+        detach()
+        setPeriodHertz()
+    }
+
+    class Preferences {
+        &lt;&lt;externo - NVS&gt;&gt;
+        begin()
+        getUShort()
+        putUShort()
+        end()
+    }
+
+    %% Relaciones
+    JoystickBLE *-- GamepadData : "contiene 1"
+    JoystickBLE --&gt; GamepadData : "usa"
+    ServoCalibration --&gt; GamepadData : "lee botones"
+    ServoCalibration --&gt; ServoDriver : "controla 2"
+    ServoCalibration --&gt; Adafruit_NeoPixel : "senaliza"
+    ServoCalibration --&gt; Preferences : "persiste"
+    NeoPixelEffects --&gt; Adafruit_NeoPixel : "contiene 1"
+    ServoDriver --&gt; Servo : "contiene 1"
+    DifferentialDrive *-- DifferentialDrive.MotorPins : "2 motores"
+    DifferentialDrive *-- DifferentialDrive.Config : "configuracion"
+
+    %% main.cpp instancia
+    note for JoystickBLE "Global: joystick"
+    note for NeoPixelEffects "Global: leds"
+    note for ServoDriver "Global: servo1, servo2"
+    note for ServoCalibration "Global: calibracion"
+    note for DifferentialDrive "Global: traccion"
+</div><hr>
+<h2 id="3-máquina-de-estados--calibración-de-servos">3. Máquina de Estados — Calibración de Servos </h2>
+<div class="mermaid">stateDiagram-v2
+    direction TB
+
+    [*] --&gt; NORMAL
+
+    NORMAL --&gt; CAL_WAIT : SELECT presionado
+    NORMAL --&gt; CAL_CLEAR : A sostenido 5 s
+
+    CAL_WAIT --&gt; NORMAL : SELECT soltado&lt;br/&gt;antes de 5 s
+    CAL_WAIT --&gt; CAL_ENTER : SELECT 5 s
+
+    CAL_CLEAR --&gt; NORMAL : 3 s (borra NVS)&lt;br/&gt;Flash rosa 6 Hz
+
+    CAL_ENTER --&gt; NORMAL : START (SAT2 activo)&lt;br/&gt;o START 2 s
+    CAL_ENTER --&gt; CAL_ZERO : 3 s&lt;br/&gt;Flash blanco 6 Hz&lt;br/&gt;START alterna SAT1 / SAT2
+
+    CAL_ZERO --&gt; NORMAL : START (SAT2 activo)&lt;br/&gt;o START 2 s
+    CAL_ZERO --&gt; CAL_SPAN : A confirma zero&lt;br/&gt;LED0 verde
+
+    CAL_SPAN --&gt; NORMAL : START (SAT2 activo)&lt;br/&gt;START 2 s&lt;br/&gt;o A confirma span
+    CAL_SPAN --&gt; CAL_ZERO : START (SAT1 activo)&lt;br/&gt;cambia a preparar&lt;br/&gt;zero del otro servo
+
+    note right of CAL_ENTER
+        LED5 amarillo = SAT1
+        LED5 azul = SAT2
+    end note
+
+    note right of CAL_ZERO
+        LED0 rojo = esperando zero
+        LED5 indica servo activo
+        Joystick mueve el servo
+    end note
+
+    note right of CAL_SPAN
+        LED1 verde = confirmacion span
+        LED5 indica servo activo
+        Joystick mueve el servo
+    end note
+
+    note left of NORMAL
+        A 5 s -&gt; borra calibracion
+        Vuelve a defaults (0-180 grados)
+    end note
+</div><hr>
+<h2 id="4-flujo-principal-del-programa">4. Flujo Principal del Programa </h2>
+<div class="mermaid">flowchart TD
+    A(["Inicio - setup"]) --&gt; B["leds.begin / traccion.begin&lt;br/&gt;servo1/2.begin / calibracion.begin&lt;br/&gt;joystick.iniciar"]
+
+    B --&gt; C{"joystick.conectado?"}
+
+    C --&gt;|"No"| D["leds.animarEscaneo&lt;br/&gt;arcoiris giratorio&lt;br/&gt;25 fps"]
+    D --&gt; C
+
+    C --&gt;|"Si"| E["Animacion de conexion&lt;br/&gt;pulso verde + fade out"]
+    E --&gt; F{"Animacion termino?"}
+    F --&gt;|"No"| E
+    F --&gt;|"Si"| G["Leer GamepadData"]
+
+    G --&gt; H{"SELECT 5 s?"}
+    H --&gt;|"Si"| I["ServoCalibration&lt;br/&gt;maquina de estados"]
+    I --&gt; C
+
+    H --&gt;|"No"| J{"Enclavamientos?&lt;br/&gt;X -&gt; SAT1 / B -&gt; SAT2"}
+    J --&gt; K["Mapear servos&lt;br/&gt;con suavizado"]
+
+    K --&gt; L{"Indicadores activos?&lt;br/&gt;L1-R1-Y-enclavamientos"}
+    L --&gt;|"Si"| M["mostrarEstadoControl&lt;br/&gt;LEDs de bloqueo"]
+
+    L --&gt;|"No"| N{"Knight Rider&lt;br/&gt;activo?&lt;br/&gt;toggle L3"}
+    N --&gt;|"Si"| O["Efecto Knight Rider&lt;br/&gt;barrido rojo + estela"]
+    N --&gt;|"No"| P["LEDs apagados&lt;br/&gt;ahorro bateria"]
+
+    M --&gt; Q{"Paro total?&lt;br/&gt;toggle Y"}
+    Q --&gt;|"Si"| R["traccion.brake&lt;br/&gt;freno activo"]
+
+    Q --&gt;|"No"| S["traccion.driveFromJoystick&lt;br/&gt;RX-RY-L2&lt;br/&gt;mezcla arcade&lt;br/&gt;bloqueos L1/R1"]
+
+    R --&gt; C
+    S --&gt; C
+    O --&gt; C
+    P --&gt; C
+    I --&gt; C
+</div><hr>
+<h2 id="5-diagrama-de-secuencia--conexión-ble">5. Diagrama de Secuencia — Conexión BLE </h2>
+<div class="mermaid">sequenceDiagram
+    actor U as Usuario
+    participant M as main.cpp
+    participant JB as JoystickBLE
+    participant N as NimBLE Stack
+    participant GP as GamePadPlus V3
+    participant GD as GamepadData
+    participant NPE as NeoPixelEffects
+
+    U-&gt;&gt;GP: Modo pairing&lt;br/&gt;(Home + X)
+
+    M-&gt;&gt;JB: iniciar()
+    JB-&gt;&gt;N: NimBLEDevice::init()
+    JB-&gt;&gt;N: deleteAllBonds()
+    JB-&gt;&gt;N: startScan(0, false)
+
+    loop Escaneo pasivo
+        N--&gt;&gt;JB: onScanResultado(disp)
+        JB-&gt;&gt;JB: esHID o GamePad?
+        JB-&gt;&gt;N: stop()
+    end
+
+    M-&gt;&gt;JB: manejar()
+    JB-&gt;&gt;N: connect(objetivo)
+    N-&gt;&gt;GP: Conexion BLE
+    GP--&gt;&gt;N: Paired
+    JB-&gt;&gt;N: secureConnection()
+    JB-&gt;&gt;N: getServices(true)
+    JB-&gt;&gt;N: subscribe(notify)
+
+    M-&gt;&gt;NPE: iniciarAnimConectado()
+    NPE-&gt;&gt;NPE: Pulso verde centro -&gt; afuera
+    NPE-&gt;&gt;NPE: Fade out gradual
+
+    loop Cada report HID (~100 Hz)
+        GP--&gt;&gt;N: Notify (10 bytes)
+        N--&gt;&gt;JB: onNotificacion(data, len)
+        JB-&gt;&gt;GD: parseFromReport(data, 10)
+        GD--&gt;&gt;JB: lx, ly, rx, ry, dpad, botones, r2, l2
+    end
+
+    GP--&gt;&gt;N: Disconnect
+    N--&gt;&gt;JB: onDisconnected(reason)
+    JB-&gt;&gt;JB: pedirReescaneo = true
+    JB-&gt;&gt;N: deleteAllBonds()
+    JB-&gt;&gt;N: startScan()
+</div><hr>
+<h2 id="6-dependencias-y-estructura-de-archivos">6. Dependencias y Estructura de Archivos </h2>
+<div class="mermaid">graph LR
+    subgraph "EducaBot_v2/"
+        direction TB
+        PF["platformio.ini"]
+        RM["README.md"]
+        SRC["src/main.cpp"]
+        subgraph "lib/"
+            DD_lib["DifferentialDrive/"]
+            GD_lib["GamepadData/"]
+            JB_lib["JoystickBLE/"]
+            NPE_lib["NeoPixelEffects/"]
+            SC_lib["ServoCalibration/"]
+            SD_lib["ServoDriver/"]
+        end
+        DOCS["docs/"]
+    end
+
+    subgraph "Dependencias Externas"
+        NIMBLE["h2zero/NimBLE-Arduino ^2.5.0"]
+        NEOPXL["adafruit/Adafruit NeoPixel ^1.15.5"]
+        ESP32SERVO["madhephaestus/ESP32Servo ^3.2.1"]
+    end
+
+    SRC --&gt; DD_lib
+    SRC --&gt; GD_lib
+    SRC --&gt; JB_lib
+    SRC --&gt; NPE_lib
+    SRC --&gt; SC_lib
+    SRC --&gt; SD_lib
+
+    JB_lib --&gt; NIMBLE
+    JB_lib --&gt; GD_lib
+    NPE_lib --&gt; NEOPXL
+    SD_lib --&gt; ESP32SERVO
+    SC_lib --&gt; SD_lib
+    SC_lib --&gt; GD_lib
+
+    PF --&gt; NIMBLE
+    PF --&gt; NEOPXL
+    PF --&gt; ESP32SERVO
+</div><hr>
+<h2 id="7-resumen-de-relaciones-entre-clases">7. Resumen de Relaciones entre Clases </h2>
+<table>
+<thead>
+<tr>
+<th>Clase</th>
+<th>Depende de</th>
+<th>Rol</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>JoystickBLE</strong></td>
+<td><code>GamepadData</code>, NimBLE</td>
+<td>Cliente BLE: escanea, conecta, recibe notificaciones HID</td>
+</tr>
+<tr>
+<td><strong>GamepadData</strong></td>
+<td>— (struct puro)</td>
+<td>Parseo de reportes HID de 10 bytes -&gt; ejes, botones, D-pad</td>
+</tr>
+<tr>
+<td><strong>DifferentialDrive</strong></td>
+<td>LEDC (ESP32)</td>
+<td>Mezcla arcade + PWM para 2 motores DC vía HR8833</td>
+</tr>
+<tr>
+<td><strong>NeoPixelEffects</strong></td>
+<td><code>Adafruit_NeoPixel</code></td>
+<td>Animaciones LED: escaneo arcoíris, conexión, estado, Knight Rider</td>
+</tr>
+<tr>
+<td><strong>ServoDriver</strong></td>
+<td><code>ESP32Servo</code> (MCPWM)</td>
+<td>Capa de hardware: attach, write, suavizado continuo</td>
+</tr>
+<tr>
+<td><strong>ServoCalibration</strong></td>
+<td><code>ServoDriver</code>, <code>GamepadData</code>, <code>Adafruit_NeoPixel</code>, <code>Preferences</code></td>
+<td>Máquina de estados de calibración con persistencia NVS</td>
+</tr>
+<tr>
+<td><strong>main.cpp</strong></td>
+<td>Todos los anteriores</td>
+<td>Orquestador: setup, loop, lógica Knight Rider, enclavamientos</td>
+</tr>
+</tbody>
+</table>
+
+      </div>
+      
+      
+    
+    
+    <script type="module">
+// TODO: If ZenUML gets integrated into mermaid in the future,
+//      we can remove the following lines.
+
+
+var MERMAID_CONFIG = ({"startOnLoad":false});
+if (typeof MERMAID_CONFIG !== 'undefined') {
+  MERMAID_CONFIG.startOnLoad = false
+  MERMAID_CONFIG.cloneCssStyles = false
+  MERMAID_CONFIG.theme = "default"
+}
+
+mermaid.initialize(MERMAID_CONFIG || {})
+if (typeof(window['Reveal']) !== 'undefined') {
+  function mermaidRevealHelper(event) {
+    var currentSlide = event.currentSlide
+    var diagrams = currentSlide.querySelectorAll('div.mermaid')
+    for (var i = 0; i < diagrams.length; i++) {
+      var diagram = diagrams[i]
+      if (!diagram.hasAttribute('data-processed')) {
+        mermaid.init(null, diagram, ()=> {
+          Reveal.slide(event.indexh, event.indexv)
+        })
+      }
+    }
+  }
+  Reveal.addEventListener('slidetransitionend', mermaidRevealHelper)
+  Reveal.addEventListener('ready', mermaidRevealHelper)
+  await mermaid.run({
+    nodes: document.querySelectorAll('div.mermaid')
+  })
+} else {
+  await mermaid.run({
+    nodes: document.querySelectorAll('div.mermaid')
+  })
+}
+</script>
+    
+    
+    
+  
+    </body></html>

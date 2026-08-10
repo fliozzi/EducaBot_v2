@@ -67,7 +67,7 @@ void setup() {
   calibracion.begin();
 
   joystick.iniciar();
-  // joystick.setVerbose(false); // descomentar para máxima eficiencia
+  joystick.setVerbose(false); // descomentar para máxima eficiencia
 }
 
 // ===================================================================
