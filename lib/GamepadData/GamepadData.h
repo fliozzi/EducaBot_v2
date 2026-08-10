@@ -12,6 +12,7 @@ struct GamepadData {
   static constexpr uint16_t BTN_L1 = 0x0040;
   static constexpr uint16_t BTN_R1 = 0x0080;
   static constexpr uint16_t BTN_L2 = 0x0100;
+  static constexpr uint16_t BTN_L3 = 0x2000;
 
   uint8_t lx = 128, ly = 128, rx = 128, ry = 128;
   uint8_t dpad = 255;

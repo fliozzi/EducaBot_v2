@@ -20,6 +20,7 @@
 constexpr uint8_t PIN_LEDS = 2; // GPIO del bus WS2812 (ajustar según placa)
 constexpr uint8_t CANT_LEDS = 6;
 constexpr uint8_t BRILLO_LEDS = 48;
+constexpr uint8_t KNIGHT_RIDER_MS = 120;
 
 // Servos (SAT1 y SAT2 en conectores RJ11 de la EduPlugPower)
 constexpr uint8_t PIN_SERVO1 = 14;
@@ -44,6 +45,8 @@ DifferentialDrive traccion(MOTOR_IZQUIERDO, MOTOR_DERECHO, TRACCION_CFG);
 bool animConectadoDisparada = false;
 bool paroTotalActivo = false;
 bool yPresionadaAnterior = false;
+bool knightRiderActivo = false;
+bool l3Anterior = false;
 
 // ---- Enclavamiento de servos ---------------------------------------------
 bool sat1Enclavado = false;
@@ -88,11 +91,17 @@ void loop() {
     const bool bloqueoGiro = g.botonPresionado(GamepadData::BTN_L1);
     const bool bloqueoAvance = g.botonPresionado(GamepadData::BTN_R1);
     const bool yPresionada = g.botonPresionado(GamepadData::BTN_Y);
+    const bool l3Presionada = g.botonPresionado(GamepadData::BTN_L3);
 
     if (yPresionada && !yPresionadaAnterior) {
       paroTotalActivo = !paroTotalActivo;
     }
     yPresionadaAnterior = yPresionada;
+
+    if (l3Presionada && !l3Anterior) {
+      knightRiderActivo = !knightRiderActivo;
+    }
+    l3Anterior = l3Presionada;
 
     // ---- Calibración de servos ----
     calibracion.manejar(g, leds.getStrip(), servo1, servo2);
@@ -136,16 +145,72 @@ void loop() {
                                      calibracion.getSpan(1), g.r2, false);
     }
 
-    leds.mostrarEstadoControl(bloqueoGiro, bloqueoAvance, paroTotalActivo);
+    // ---- LEDs: prioridad indicadores > Knight Rider > apagado ----
+    const bool hayIndicador = bloqueoGiro || bloqueoAvance || paroTotalActivo ||
+                              sat1Enclavado || sat2Enclavado;
 
-    // ---- LEDs de enclavamiento ----
-    if (sat1Enclavado) {
-      leds.getStrip().setPixelColor(3, leds.getStrip().Color(255, 0, 255));
-    }
-    if (sat2Enclavado) {
-      leds.getStrip().setPixelColor(2, leds.getStrip().Color(255, 0, 0));
-    }
-    if (sat1Enclavado || sat2Enclavado) {
+    if (hayIndicador) {
+      leds.mostrarEstadoControl(bloqueoGiro, bloqueoAvance, paroTotalActivo);
+      if (sat1Enclavado)
+        leds.getStrip().setPixelColor(3, leds.getStrip().Color(255, 0, 255));
+      if (sat2Enclavado)
+        leds.getStrip().setPixelColor(2, leds.getStrip().Color(255, 0, 0));
+      if (sat1Enclavado || sat2Enclavado)
+        leds.getStrip().show();
+    } else if (knightRiderActivo) {
+      // ---- Knight Rider: barrido rojo direccional con estela ----
+      static uint8_t krPos = 0;
+      static int8_t krDir = 1;
+      static unsigned long krLast = 0;
+
+      if (millis() - krLast >= KNIGHT_RIDER_MS) {
+        krLast = millis();
+        Adafruit_NeoPixel &t = leds.getStrip();
+        t.setBrightness(BRILLO_LEDS);
+        t.clear();
+
+        for (uint8_t i = 0; i < CANT_LEDS; ++i) {
+          int detras = ((int)krPos - (int)i) * krDir;
+          if (detras < 0)
+            continue;
+          uint8_t b = 0;
+          if (detras == 0)
+            b = 255;
+          else if (detras == 1)
+            b = 100;
+          else if (detras == 2)
+            b = 40;
+          else if (detras == 3)
+            b = 12;
+          else
+            continue;
+          t.setPixelColor(i, t.Color(b, 0, 0));
+
+          if ((krDir > 0 && krPos >= CANT_LEDS - 2) ||
+              (krDir < 0 && krPos <= 1)) {
+            int8_t ad = (int8_t)krPos + krDir;
+            if (ad >= 0 && ad < CANT_LEDS)
+              t.setPixelColor(ad, t.Color(60, 0, 0));
+          }
+        }
+        t.show();
+
+        if (krDir > 0) {
+          if (krPos >= CANT_LEDS - 1) {
+            krDir = -1;
+            --krPos;
+          } else
+            ++krPos;
+        } else {
+          if (krPos == 0) {
+            krDir = 1;
+            ++krPos;
+          } else
+            --krPos;
+        }
+      }
+    } else {
+      leds.getStrip().clear();
       leds.getStrip().show();
     }
 
@@ -162,7 +227,9 @@ void loop() {
     // ----- MODO ESCANEO (sin joystick) -----
     animConectadoDisparada = false;
     yPresionadaAnterior = false;
+    l3Anterior = false;
     paroTotalActivo = false;
+    knightRiderActivo = false;
     traccion.stop();
     leds.animarEscaneo();
   }
